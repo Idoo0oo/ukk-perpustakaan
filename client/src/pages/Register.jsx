@@ -85,7 +85,7 @@ const Register = () => {
                                 </span>
                                 <input 
                                     type="email" 
-                                    className="input input-bordered w-full pl-10 bg-gray-50 text-gray-900 h-10 text-sm" 
+                                    className="input input-bordered w-full pl-10 bg-gray-50 text-gray-900 h-10 text-sm focus:input-primary" 
                                     placeholder="email@gmail.com"
                                     onChange={(e) => setFormData({...formData, email: e.target.value})} 
                                     required 
@@ -126,8 +126,8 @@ const Register = () => {
                                 </span>
                                 <input 
                                     type="text" 
-                                    className="input input-bordered w-full pl-10 bg-gray-50 text-gray-900 h-10 text-sm" 
-                                    placeholder="Nama Sesuai KTP"
+                                    className="input input-bordered w-full pl-10 bg-gray-50 text-gray-900 h-10 text-sm focus:input-primary" 
+                                    placeholder="Nama"
                                     onChange={(e) => setFormData({...formData, namaLengkap: e.target.value})} 
                                     required 
                                 />
@@ -152,21 +152,9 @@ const Register = () => {
 
                         {/* Role */}
                         <div className="form-control md:col-span-2">
-                            <label className="label py-1 text-xs font-bold uppercase text-gray-500">Mendaftar Sebagai</label>
-                            <div className="relative flex items-center">
-                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center z-10 pointer-events-none text-gray-400">
-                                    <ShieldCheck size={16} />
-                                </span>
-                                <select 
-                                    className="select select-bordered w-full pl-10 bg-gray-50 text-gray-900 h-10 min-h-0 text-sm focus:select-primary"
-                                    value={formData.role} 
-                                    onChange={(e) => setFormData({...formData, role: e.target.value})}
-                                >
-                                    <option value="peminjam">Peminjam (Siswa)</option>
-                                    <option value="petugas">Petugas</option>
-                                    <option value="admin">Administrator</option>
-                                </select>
-                            </div>
+                            <p className="text-xs text-gray-400 italic text-center mt-2">
+                                *Dengan mendaftar, Anda akan terdaftar sebagai Anggota Perpustakaan.
+                            </p>
                         </div>
 
                         <button type="submit" className="btn btn-primary md:col-span-2 mt-4 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">

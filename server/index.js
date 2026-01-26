@@ -8,6 +8,7 @@ const peminjamanRoutes = require('./routes/peminjamanRoutes');
 const kategoriRoutes = require('./routes/kategoriRoutes');
 const ulasanRoutes = require('./routes/ulasanRoutes');
 const laporanRoutes = require('./routes/laporanRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 app.use(cors());
@@ -20,6 +21,7 @@ app.use('/api/peminjaman', peminjamanRoutes);
 app.use('/api/kategori', kategoriRoutes);
 app.use('/api/ulasan', ulasanRoutes);
 app.use('/api/laporan', laporanRoutes);
+app.use('/api/users', userRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
