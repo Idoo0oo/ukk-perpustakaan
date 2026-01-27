@@ -3,11 +3,13 @@ import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     LayoutDashboard, Book, Layers, Users, 
-    FileText, LogOut, Menu, X 
+    FileText, LogOut, Menu, X, BellDot
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import KelolaBuku from './admin/KelolaBuku';
 import DataSiswa from './admin/DataSiswa';
+import KelolaKategori from './admin/KelolaKategori';
+import AdminPermintaan from './admin/AdminPermintaan';
 
 // --- Komponen View (Isi Konten) ---
 const DashboardHome = () => (
@@ -61,8 +63,9 @@ const AdminDashboard = () => {
         });
     };
 
-    const menuItems = [
+   const menuItems = [
         { path: '/admin', name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+        { path: '/admin/permintaan', name: 'Permintaan Pinjam', icon: <BellDot size={20} /> }, // Menu Baru
         { path: '/admin/buku', name: 'Kelola Buku', icon: <Book size={20} /> },
         { path: '/admin/kategori', name: 'Kategori', icon: <Layers size={20} /> },
         { path: '/admin/siswa', name: 'Data Siswa', icon: <Users size={20} /> },
@@ -145,10 +148,11 @@ const AdminDashboard = () => {
                     <AnimatePresence mode="wait">
                         <Routes>
                             <Route path="/" element={<DashboardHome />} />
+                            <Route path="/permintaan" element={<AdminPermintaan />} /> {/* Rute Baru */}
                             <Route path="/buku" element={<KelolaBuku />} />
-                            <Route path="/kategori" element={<div className="text-gray-400 italic">Halaman Kategori (Sedang dikerjakan...)</div>} />
+                            <Route path="/kategori" element={<KelolaKategori />} />
                             <Route path="/siswa" element={<DataSiswa />} />
-                            <Route path="/laporan" element={<div className="text-gray-400 italic">Halaman Laporan (Sedang dikerjakan...)</div>} />
+                            <Route path="/laporan" element={<div className="text-gray-400 italic">Halaman Laporan</div>} />
                         </Routes>
                     </AnimatePresence>
                 </main>

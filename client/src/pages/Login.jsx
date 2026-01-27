@@ -11,21 +11,45 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post('http://localhost:5000/api/auth/login', { username, password });
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('role', res.data.role);
-            
-            Swal.fire({ icon: 'success', title: 'Login Berhasil', showConfirmButton: false, timer: 1500 });
-            
-            if (res.data.role === 'admin' || res.data.role === 'petugas') navigate('/admin');
-            else navigate('/dashboard');
-        } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Login Gagal', text: err.response?.data?.message || 'Terjadi kesalahan' });
+   const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+        const res = await axios.post('http://localhost:5000/api/auth/login', { username, password });
+        
+        // Simpan data ke storage
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('role', res.data.role);
+        localStorage.setItem('namaUser', res.data.nama);
+        localStorage.setItem('userId', res.data.userId);
+        
+        Swal.fire({ 
+            icon: 'success', 
+            title: 'Login Berhasil', 
+            showConfirmButton: false, 
+            timer: 1500 
+        });
+        
+        // --- PERBAIKAN DI SINI ---
+        const userRole = res.data.role;
+
+        if (userRole === 'admin' || userRole === 'petugas') {
+            navigate('/admin');
+        } else if (userRole === 'peminjam') {
+            navigate('/peminjam'); // Pastikan tujuannya /peminjam, bukan /dashboard
+        } else {
+            // Jika ada role lain yang tidak dikenal
+            navigate('/');
         }
-    };
+        // -------------------------
+
+    } catch (err) {
+        Swal.fire({ 
+            icon: 'error', 
+            title: 'Login Gagal', 
+            text: err.response?.data?.message || 'Terjadi kesalahan' 
+        });
+    }
+};
 
     return (
         // Menggunakan bg-linear-to-br (Tailwind v4) untuk background konsisten

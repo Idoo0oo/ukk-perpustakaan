@@ -32,7 +32,7 @@ exports.login = async (req, res) => {
             { expiresIn: '1d' }
         );
 
-        res.json({ token, role: user.Role, nama: user.NamaLengkap });
+        res.json({ token, role: user.Role, nama: user.NamaLengkap, userId: user.UserID });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
