@@ -1,14 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const peminjamanController = require('../controllers/peminjamanController');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
 
-router.use(verifyToken);
+router.post('/', verifyToken, peminjamanController.pinjamBuku);
+router.get('/', verifyToken, peminjamanController.getAllPeminjaman); // Riwayat user sendiri
 
-router.post('/pinjam', peminjamanController.pinjamBuku);
-router.get('/', peminjamanController.getAllPeminjaman);
-router.put('/acc/:id', peminjamanController.accPeminjaman); // Baris 11 (Tersangka Error)
-router.put('/tolak/:id', peminjamanController.tolakPeminjaman);
-router.put('/kembali/:id', peminjamanController.kembalikanBuku);
+router.get('/pending', verifyToken, isAdmin, peminjamanController.getPeminjamanPending);
+router.get('/history', verifyToken, isAdmin, peminjamanController.getAllHistory);
+router.put('/:id/approve', verifyToken, isAdmin, peminjamanController.approvePeminjaman);
+router.put('/:id/reject', verifyToken, isAdmin, peminjamanController.rejectPeminjaman);
+router.put('/:id/return', verifyToken, isAdmin, peminjamanController.kembalikanBuku); // Admin konfirmasi kembali
+router.put('/:id/kembali', verifyToken, peminjamanController.ajukanPengembalian); 
+router.get('/return-requests', verifyToken, isAdmin, peminjamanController.getPengembalianPending);
+router.put('/:id/return', verifyToken, isAdmin, peminjamanController.kembalikanBuku);
 
 module.exports = router;

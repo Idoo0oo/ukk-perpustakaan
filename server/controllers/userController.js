@@ -1,52 +1,41 @@
 const db = require('../config/db');
-const bcrypt = require('bcryptjs');
 
-// 1. Ambil semua data siswa/petugas
+// Ambil semua user (bisa difilter status via query param ?status=Menunggu)
 exports.getAllUsers = async (req, res) => {
     try {
-        const [rows] = await db.query("SELECT UserID, Username, Email, NamaLengkap, Alamat, Role FROM user WHERE Role != 'admin'");
+        const { status } = req.query;
+        let query = "SELECT UserID, Username, Email, NamaLengkap, Alamat, Role, Status FROM user WHERE Role = 'peminjam'";
+        let params = [];
+
+        if (status) {
+            query += " AND Status = ?";
+            params.push(status);
+        }
+
+        const [rows] = await db.query(query + " ORDER BY UserID DESC", params);
         res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// 2. Admin tambah User baru (Siswa/Petugas)
-exports.createUser = async (req, res) => {
-    const { username, password, email, namaLengkap, alamat, role } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await db.query(
-            "INSERT INTO user (Username, Password, Email, NamaLengkap, Alamat, Role) VALUES (?, ?, ?, ?, ?, ?)",
-            [username, hashedPassword, email, namaLengkap, alamat, role || 'peminjam']
-        );
-        res.status(201).json({ message: "User berhasil dibuat oleh Admin!" });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// 3. Admin Update data User
-exports.updateUser = async (req, res) => {
+// Fitur Admin: Verifikasi Akun User
+exports.verifyUser = async (req, res) => {
     const { id } = req.params;
-    const { email, namaLengkap, alamat, role } = req.body;
     try {
-        await db.query(
-            "UPDATE user SET Email=?, NamaLengkap=?, Alamat=?, Role=? WHERE UserID=?",
-            [email, namaLengkap, alamat, role, id]
-        );
-        res.json({ message: "Data user berhasil diperbarui!" });
+        await db.query("UPDATE user SET Status = 'Aktif' WHERE UserID = ?", [id]);
+        res.json({ message: "Akun pengguna berhasil diaktifkan!" });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// 4. Admin Hapus User
+// Fitur Admin: Hapus User (jika pendaftaran ditolak)
 exports.deleteUser = async (req, res) => {
     const { id } = req.params;
     try {
-        await db.query("DELETE FROM user WHERE UserID=?", [id]);
-        res.json({ message: "User telah dihapus dari sistem!" });
+        await db.query("DELETE FROM user WHERE UserID = ?", [id]);
+        res.json({ message: "Data pengguna berhasil dihapus." });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
