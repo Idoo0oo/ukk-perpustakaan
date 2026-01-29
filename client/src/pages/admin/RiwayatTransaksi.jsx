@@ -133,7 +133,7 @@ const RiwayatTransaksi = () => {
                     <div className="p-10 text-center"><span className="loading loading-spinner text-primary"></span></div>
                 ) : filteredData.length === 0 ? (
                     <div className="p-16 text-center text-gray-400">
-                        <History size={48} className="mx-auto mb-4 opacity-20" />
+                        <HistoryIcon size={48} className="mx-auto mb-4 opacity-20" />
                         <p>Tidak ada riwayat transaksi yang ditemukan.</p>
                     </div>
                 ) : (

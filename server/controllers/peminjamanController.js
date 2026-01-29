@@ -64,10 +64,13 @@ exports.getAllPeminjaman = async (req, res) => {
                 p.TanggalPeminjaman, 
                 p.TanggalPengembalian, 
                 p.StatusPeminjaman,
+                p.Denda,
                 b.Judul AS JudulBuku, 
-                b.Judul, 
+                b.Judul,
+                -- b.Gambar,  <-- SAYA KOMENTAR DULU BIAR GAK ERROR KALAU KOLOM GAK ADA
                 u.NamaLengkap AS NamaPeminjam,
-                u.NamaLengkap
+                -- Subquery Cek Ulasan
+                (SELECT COUNT(*) FROM ulasanbuku ub WHERE ub.UserID = p.UserID AND ub.BukuID = p.BukuID) AS SudahDiulas
             FROM peminjaman p
             JOIN buku b ON p.BukuID = b.BukuID
             JOIN user u ON p.UserID = u.UserID
@@ -75,7 +78,7 @@ exports.getAllPeminjaman = async (req, res) => {
         
         const params = [];
 
-        // Jika user BUKAN admin/petugas, hanya ambil data miliknya sendiri
+        // Filter User Biasa
         if (req.user.role !== 'admin' && req.user.role !== 'petugas') {
             query += " WHERE p.UserID = ?";
             params.push(req.user.id);
@@ -86,6 +89,8 @@ exports.getAllPeminjaman = async (req, res) => {
         const [rows] = await db.query(query, params);
         res.json(rows);
     } catch (error) {
+        // Log Error ke Terminal Biar Kelihatan
+        console.error("ERROR DATABASE:", error.message); 
         res.status(500).json({ error: error.message });
     }
 };

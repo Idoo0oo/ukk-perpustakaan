@@ -9,6 +9,7 @@ const kategoriRoutes = require('./routes/kategoriRoutes');
 const ulasanRoutes = require('./routes/ulasanRoutes');
 const laporanRoutes = require('./routes/laporanRoutes');
 const userRoutes = require('./routes/userRoutes');
+const fiturRoutes = require('./routes/fiturRoutes');
 const path = require('path');
 
 const app = express();
@@ -23,6 +24,7 @@ app.use('/api/kategori', kategoriRoutes);
 app.use('/api/ulasan', ulasanRoutes);
 app.use('/api/laporan', laporanRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/fitur', fiturRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const PORT = process.env.PORT || 5000;

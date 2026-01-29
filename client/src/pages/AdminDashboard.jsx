@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Swal from 'sweetalert2';
 import { 
     LayoutDashboard, Book, Layers, Users, FileText, LogOut, Menu, X, 
-    BellDot, UserCheck, BookOpen, Activity, ArrowRight, History as HistoryIcon
+    BellDot, UserCheck, BookOpen, Activity, ArrowRight, History as HistoryIcon, MessageSquare
 } from 'lucide-react';
 
 // Import halaman-halaman Admin
@@ -15,6 +15,7 @@ import KelolaKategori from './admin/KelolaKategori';
 import AdminPermintaan from './admin/AdminPermintaan';
 import ValidasiPendaftaran from './admin/ValidasiPendaftaran';
 import RiwayatTransaksi from './admin/RiwayatTransaksi';
+import DataUlasan from './admin/DataUlasan';
 
 // --- KOMPONEN DASHBOARD HOME (REALTIME & MODERN) ---
 const DashboardHome = () => {
@@ -292,6 +293,7 @@ const AdminDashboard = () => {
         { path: '/admin/validasi-pendaftaran', name: 'Validasi Pendaftaran', icon: <UserCheck size={20} /> },
         { path: '/admin/buku', name: 'Kelola Buku', icon: <Book size={20} /> },
         { path: '/admin/kategori', name: 'Kategori', icon: <Layers size={20} /> },
+        { path: '/admin/ulasan', name: 'Ulasan Buku', icon: <MessageSquare size={20} /> },
         { path: '/admin/siswa', name: 'Data Siswa', icon: <Users size={20} /> },
         { path: '/admin/laporan', name: 'Laporan', icon: <FileText size={20} /> },
     ];
@@ -377,6 +379,7 @@ const AdminDashboard = () => {
                             <Route path="/validasi-pendaftaran" element={<ValidasiPendaftaran />} />
                             <Route path="/buku" element={<KelolaBuku />} />
                             <Route path="/kategori" element={<KelolaKategori />} />
+                            <Route path="/ulasan" element={<DataUlasan />} />
                             <Route path="/siswa" element={<DataSiswa />} />
                             <Route path="/laporan" element={<div className="text-gray-400 italic">Halaman Laporan</div>} />
                         </Routes>

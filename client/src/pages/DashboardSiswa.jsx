@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, BookOpen, Filter, LogOut, LayoutGrid, Book, User } from 'lucide-react';
+import { Search, BookOpen, Filter, LogOut, LayoutGrid, Book, User, Heart } from 'lucide-react';
 
 const DashboardSiswa = () => {
     const [books, setBooks] = useState([]);
@@ -32,6 +32,13 @@ const DashboardSiswa = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setCategories(resKategori.data);
+
+                const resKoleksi = await axios.get('http://localhost:5000/api/fitur/koleksi', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const ids = resKoleksi.data.map(item => item.BukuID);
+                setSavedBookIds(ids);
                 
                 setLoading(false);
             } catch (err) {
@@ -112,6 +119,46 @@ const DashboardSiswa = () => {
         }
     };
 
+    const handleBookmark = async (bukuID) => {
+        try {
+            // Optimistic Update: Ubah tampilan dulu biar cepat
+            const isCurrentlySaved = savedBookIds.includes(bukuID);
+            
+            if (isCurrentlySaved) {
+                // Kalau sudah ada, berarti mau dihapus -> Buang dari state
+                setSavedBookIds(prev => prev.filter(id => id !== bukuID));
+            } else {
+                // Kalau belum ada, berarti mau disimpan -> Tambah ke state
+                setSavedBookIds(prev => [...prev, bukuID]);
+            }
+
+            // Kirim ke Backend
+            const res = await axios.post('http://localhost:5000/api/fitur/koleksi', { bukuID }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // Tampilkan Notifikasi
+            const pesan = res.data.isSaved ? 'Disimpan ke Koleksi!' : 'Dihapus dari Koleksi.';
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Sukses',
+                text: pesan,
+                timer: 1000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+
+        } catch (err) {
+            console.error(err);
+            // Kalau error, kembalikan state ke semula (Rollback) - Opsional
+            Swal.fire('Gagal', 'Terjadi kesalahan koneksi.', 'error');
+        }
+    };
+
+const [savedBookIds, setSavedBookIds] = useState([]);
+
     const handleLogout = () => {
         Swal.fire({
             title: 'Keluar?',
@@ -139,6 +186,7 @@ const DashboardSiswa = () => {
                 
                 <div className="flex items-center gap-6">
                     <Link to="/peminjam" className="font-medium text-indigo-600">Katalog</Link>
+                    <Link to="/peminjam/koleksi" className="font-medium text-gray-500 hover:text-indigo-600 transition">Koleksi Saya</Link>
                     <Link to="/peminjam/pinjaman-saya" className="font-medium text-gray-500 hover:text-indigo-600 transition">Pinjaman Saya</Link>
                     <div className="h-6 w-px bg-gray-200"></div>
                     <button onClick={handleLogout} className="flex items-center gap-2 text-red-500 hover:text-red-600 font-medium text-sm">
@@ -212,20 +260,28 @@ const DashboardSiswa = () => {
                                 {/* Cover Placeholder (Bisa diganti <img> jika ada fitur upload gambar) */}
                                 <div className="h-48 bg-gray-100 relative overflow-hidden group">
                                     {book.Gambar ? (
-                                        <img 
-                                            src={`http://localhost:5000/uploads/${book.Gambar}`} 
-                                            alt={book.Judul} 
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                        />
+                                        <img src={`http://localhost:5000/uploads/${book.Gambar}`} alt={book.Judul} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                     ) : (
-                                        // Placeholder jika tidak ada gambar (Gradient)
                                         <div className="w-full h-full bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center">
-                                            <Book size={64} className="text-indigo-200 group-hover:scale-110 transition-transform duration-500" />
+                                            <Book size={64} className="text-indigo-200" />
                                         </div>
                                     )}
-                                    
-                                    {/* Label Kategori */}
-                                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded-md text-xs font-bold text-gray-600 shadow-sm z-10">
+                                    <button 
+                                    onClick={() => handleBookmark(book.BukuID)}
+                                    className={`absolute top-2 right-2 p-2 rounded-full transition-all shadow-sm z-10 ${
+                                        savedBookIds.includes(book.BukuID) 
+                                            ? "bg-pink-50 text-pink-500"  // Jika tersimpan: Background pink muda, Ikon Pink
+                                            : "bg-white/80 text-gray-400 hover:text-pink-500 hover:bg-white" // Jika tidak: Standar
+                                    }`}
+                                    title={savedBookIds.includes(book.BukuID) ? "Hapus dari Koleksi" : "Simpan ke Koleksi"}
+                                >
+                                    {/* Logika Fill: Jika tersimpan, isi warnanya (currentColor). Jika tidak, kosongkan ('none') */}
+                                    <Heart 
+                                        size={18} 
+                                        fill={savedBookIds.includes(book.BukuID) ? "currentColor" : "none"} 
+                                    />
+                                </button>
+                                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded-md text-xs font-bold text-gray-600 shadow-sm z-10">
                                         {book.NamaKategori || 'Umum'}
                                     </div>
                                 </div>

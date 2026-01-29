@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
     Clock, CalendarDays, BookOpen, AlertCircle, 
-    CheckCircle2, Hourglass, Book, LogOut 
+    CheckCircle2, Hourglass, Book, Star, LogOut 
 } from 'lucide-react';
 
 const PinjamanSaya = () => {
@@ -42,6 +42,49 @@ const PinjamanSaya = () => {
     };
 
     useEffect(() => { fetchLoans(); }, []);
+
+    const handleUlasan = async (bukuID, judul) => {
+    const { value: formValues } = await Swal.fire({
+        title: `<h3 class="text-lg font-bold">Ulas Buku</h3><p class="text-sm text-gray-500">${judul}</p>`,
+        html:
+            '<div class="text-left mb-1 text-sm font-medium">Rating:</div>' +
+            '<select id="swal-rating" class="swal2-input mb-4" style="margin: 0 0 1rem 0; width: 100%;">' +
+            '<option value="5">⭐⭐⭐⭐⭐ (Sangat Bagus)</option>' +
+            '<option value="4">⭐⭐⭐⭐ (Bagus)</option>' +
+            '<option value="3">⭐⭐⭐ (Cukup)</option>' +
+            '<option value="2">⭐⭐ (Kurang)</option>' +
+            '<option value="1">⭐ (Buruk)</option>' +
+            '</select>' +
+            '<div class="text-left mb-1 text-sm font-medium">Komentar:</div>' +
+            '<textarea id="swal-ulasan" class="swal2-textarea" style="margin: 0; width: 100%;" placeholder="Tulis pendapatmu..."></textarea>',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonColor: '#4f46e5',
+        confirmButtonText: 'Kirim Ulasan',
+        cancelButtonText: 'Batal',
+        preConfirm: () => {
+            return {
+                rating: document.getElementById('swal-rating').value,
+                ulasan: document.getElementById('swal-ulasan').value
+            }
+        }
+    });
+
+    if (formValues) {
+        try {
+            await axios.post('http://localhost:5000/api/fitur/ulasan', {
+                bukuID,
+                rating: formValues.rating,
+                ulasan: formValues.ulasan
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            Swal.fire('Terima Kasih!', 'Ulasanmu berhasil dikirim.', 'success');
+        } catch (err) {
+            Swal.fire('Gagal', err.response?.data?.message || 'Terjadi kesalahan', 'error');
+        }
+    }
+};
 
     // Handler Tombol Kembalikan (Logika: Mengajukan Pengembalian)
     const handleReturn = async (id, judul) => {
@@ -108,9 +151,23 @@ const PinjamanSaya = () => {
                 </div>
                 
                 <div className="flex items-center gap-6">
-                    <Link to="/peminjam" className="font-medium text-gray-500 hover:text-indigo-600 transition">Katalog</Link>
-                    <Link to="/peminjam/pinjaman-saya" className="font-medium text-indigo-600">Pinjaman Saya</Link>
+                    {/* Link Katalog */}
+                    <Link to="/peminjam" className="font-medium text-gray-500 hover:text-indigo-600 transition">
+                        Katalog
+                    </Link>
+                    
+                    {/* Link Koleksi Saya (BARU DITAMBAHKAN) */}
+                    <Link to="/peminjam/koleksi" className="font-medium text-gray-500 hover:text-indigo-600 transition">
+                        Koleksi Saya
+                    </Link>
+                    
+                    {/* Link Pinjaman Saya (Sedang Aktif) */}
+                    <Link to="/peminjam/pinjaman-saya" className="font-medium text-indigo-600">
+                        Pinjaman Saya
+                    </Link>
+                    
                     <div className="h-6 w-px bg-gray-200"></div>
+                    
                     <button onClick={handleLogout} className="flex items-center gap-2 text-red-500 hover:text-red-600 font-medium text-sm">
                         <LogOut size={18} /> Keluar
                     </button>
@@ -196,6 +253,21 @@ const PinjamanSaya = () => {
                                                 <CheckCircle2 size={16} />
                                                 Kembalikan Buku
                                             </button>
+                                        )}
+
+                                        {loan.StatusPeminjaman === 'Dikembalikan' && loan.SudahDiulas === 0 && (
+                                            <button 
+                                                onClick={() => handleUlasan(loan.BukuID, loan.JudulBuku)}
+                                                className="btn btn-sm bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border-yellow-200 gap-2 normal-case font-bold w-full md:w-auto"
+                                            >
+                                                <Star size={16} fill="currentColor" /> Beri Ulasan
+                                            </button>
+                                        )}
+
+                                        {loan.StatusPeminjaman === 'Dikembalikan' && loan.SudahDiulas > 0 && (
+                                            <div className="flex items-center gap-2 text-emerald-600 text-sm font-bold bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
+                                                <CheckCircle2 size={16} /> Transaksi Selesai
+                                            </div>
                                         )}
 
                                         {/* Status Lain */}

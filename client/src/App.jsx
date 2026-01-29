@@ -6,7 +6,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 import DashboardSiswa from './pages/DashboardSiswa';
-import PinjamanSaya from './pages/PinjamanSaya'; // Pastikan ini di-import!
+import PinjamanSaya from './pages/PinjamanSaya';
+import KoleksiSaya from './pages/KoleksiSaya';
 
 // Komponen Pelindung Route (Cek Login & Role)
 const ProtectedRoute = ({ children, allowedRole }) => {
@@ -50,6 +51,12 @@ function App() {
                 <Route path="/peminjam/pinjaman-saya" element={
                     <ProtectedRoute allowedRole="peminjam">
                         <PinjamanSaya />
+                    </ProtectedRoute>
+                } />
+
+                <Route path="/peminjam/koleksi" element={
+                    <ProtectedRoute allowedRole="peminjam">
+                        <KoleksiSaya />
                     </ProtectedRoute>
                 } />
 
