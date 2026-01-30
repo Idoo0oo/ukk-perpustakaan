@@ -80,22 +80,51 @@ const AdminPermintaan = () => {
     const handleConfirmReturn = async (id, judul, nama) => {
         const result = await Swal.fire({
             title: 'Konfirmasi Pengembalian?',
-            html: `Pastikan buku "<i>${judul}</i>" dari <b>${nama}</b> sudah Anda terima fisiknya dengan kondisi baik.`,
-            icon: 'info',
+            text: `Pastikan buku "${judul}" dari ${nama} sudah diterima fisiknya.`,
+            icon: 'question',
             showCancelButton: true,
-            confirmButtonText: 'Ya, Buku Diterima',
-            confirmButtonColor: '#3b82f6', // Biru
-            cancelButtonText: 'Batal'
+            confirmButtonText: 'Ya, Terima Buku',
+            confirmButtonColor: '#10b981' // Warna Emerald
         });
 
         if (result.isConfirmed) {
             try {
-                // Panggil endpoint kembalikanBuku yang sudah ada
-                await axios.put(`http://localhost:5000/api/peminjaman/${id}/return`, {}, { headers: { Authorization: `Bearer ${token}` } });
-                
-                Swal.fire('Selesai!', 'Buku berhasil dikembalikan ke stok.', 'success');
-                fetchData();
-            } catch (err) { Swal.fire('Gagal', err.response?.data?.message || 'Gagal memproses.', 'error'); }
+                // Tampilkan Loading
+                Swal.showLoading();
+
+                // Panggil API Backend (Pastikan URL-nya sesuai route backend kamu, misal /kembali atau /return)
+                const res = await axios.put(`http://localhost:5000/api/peminjaman/${id}/return`, {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                // TANGKAP DATA DENDA DARI BACKEND
+                const { denda, terlambat } = res.data;
+
+                // Logika Alert Berdasarkan Denda
+                if (denda > 0) {
+                    // JIKA ADA DENDA (TELAT)
+                    Swal.fire({
+                        title: 'TERLAMBAT!',
+                        html: `
+                            <div class="text-left bg-red-50 p-4 rounded-lg border border-red-200">
+                                <p class="mb-2 text-gray-700">Siswa ini terlambat <b>${terlambat} hari</b>.</p>
+                                <p class="text-xl font-bold text-red-600">Total Denda: Rp ${denda.toLocaleString('id-ID')}</p>
+                                <p class="text-xs text-gray-500 mt-2 italic">*Silakan tagih denda ke siswa sebelum klik Oke.</p>
+                            </div>
+                        `,
+                        icon: 'warning',
+                        confirmButtonText: 'Oke, Mengerti'
+                    });
+                } else {
+                    // JIKA TEPAT WAKTU
+                    Swal.fire('Berhasil', 'Buku dikembalikan tepat waktu. Tidak ada denda.', 'success');
+                }
+
+                fetchData(); // Refresh Tabel
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Gagal', err.response?.data?.message || 'Gagal memproses.', 'error');
+            }
         }
     };
 

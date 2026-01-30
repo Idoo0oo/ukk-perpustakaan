@@ -95,14 +95,62 @@ exports.getAllPeminjaman = async (req, res) => {
     }
 };
 
+// 5. Admin Konfirmasi Pengembalian (+ Hitung Denda Otomatis)
 exports.kembalikanBuku = async (req, res) => {
     const { id } = req.params;
+    const DENDA_PER_HARI = 1000; // Konfigurasi: Rp 1.000 per hari
+
     try {
-        const [data] = await db.query("SELECT BukuID FROM peminjaman WHERE PeminjamanID = ?", [id]);
-        await db.query("UPDATE buku SET Stok = Stok + 1 WHERE BukuID = ?", [data[0].BukuID]);
-        await db.query("UPDATE peminjaman SET StatusPeminjaman = 'Dikembalikan' WHERE PeminjamanID = ?", [id]);
-        res.json({ message: "Buku berhasil dikembalikan!" });
-    } catch (error) { res.status(500).json({ error: error.message }); }
+        // 1. Ambil data peminjaman untuk cek tanggal
+        const [data] = await db.query("SELECT * FROM peminjaman WHERE PeminjamanID = ?", [id]);
+        
+        if (data.length === 0) return res.status(404).json({ message: "Data tidak ditemukan" });
+        
+        const pinjam = data[0];
+        
+        // 2. Logika Hitung Selisih Hari
+        // Bandingkan Tanggal Pengembalian (Jatuh Tempo) vs Hari Ini (Realisasi)
+        const tglJatuhTempo = new Date(pinjam.TanggalPengembalian);
+        const tglDikembalikan = new Date(); // Hari ini saat admin klik
+        
+        // Reset jam agar hitungan murni per hari (bukan per jam)
+        tglJatuhTempo.setHours(0,0,0,0);
+        tglDikembalikan.setHours(0,0,0,0);
+
+        let totalDenda = 0;
+        let terlambatHari = 0;
+
+        // Jika Tanggal Kembali > Jatuh Tempo = TELAT
+        if (tglDikembalikan > tglJatuhTempo) {
+            const selisihWaktu = tglDikembalikan - tglJatuhTempo;
+            // Konversi milidetik ke hari
+            terlambatHari = Math.ceil(selisihWaktu / (1000 * 60 * 60 * 24));
+            totalDenda = terlambatHari * DENDA_PER_HARI;
+        }
+
+        // 3. Update Database
+        // - Ubah Status jadi 'Dikembalikan'
+        // - Masukkan nilai Denda
+        // - (Opsional) Update TanggalPengembalian jadi tanggal realisasi hari ini, tapi biasanya TanggalPengembalian dibiarkan sebagai 'Deadline'.
+        //   Disini kita update Status dan Denda saja.
+        await db.query(
+            "UPDATE peminjaman SET StatusPeminjaman = 'Dikembalikan', Denda = ? WHERE PeminjamanID = ?", 
+            [totalDenda, id]
+        );
+
+        // 4. Kembalikan Stok Buku (+1)
+        await db.query("UPDATE buku SET Stok = Stok + 1 WHERE BukuID = ?", [pinjam.BukuID]);
+
+        // 5. Kirim Respon ke Frontend (PENTING: Kirim info denda biar muncul di Alert)
+        res.json({ 
+            message: "Buku berhasil dikembalikan.", 
+            denda: totalDenda,
+            terlambat: terlambatHari
+        });
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
 exports.getPeminjamanPending = async (req, res) => {

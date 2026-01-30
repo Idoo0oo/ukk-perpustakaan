@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
-    History as HistoryIcon, Search, Filter, Download, Calendar, 
-    User, BookOpen, ArrowUpRight 
+    History, Search, Filter, ArrowDownUp, 
+    CalendarCheck, AlertCircle, CheckCircle2, User, BookOpen 
 } from 'lucide-react';
 
 const RiwayatTransaksi = () => {
     const [transactions, setTransactions] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    
-    // State Filter
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('Semua');
+    const [filterStatus, setFilterStatus] = useState('All'); // All, Denda, Dipinjam
+    const [loading, setLoading] = useState(true);
 
     const token = localStorage.getItem('token');
 
@@ -20,15 +18,25 @@ const RiwayatTransaksi = () => {
     const formatDate = (dateString) => {
         if (!dateString) return '-';
         return new Date(dateString).toLocaleDateString('id-ID', {
-            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            day: 'numeric', month: 'short', year: 'numeric'
         });
     };
 
-    // Fetch Data
+    // Format Rupiah
+    const formatRupiah = (number) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(number);
+    };
+
+    // Ambil Data
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/peminjaman/history', {
+                // Kita gunakan endpoint utama karena di controller sudah ada logika ambil Denda
+                const res = await axios.get('http://localhost:5000/api/peminjaman', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setTransactions(res.data);
@@ -40,166 +48,162 @@ const RiwayatTransaksi = () => {
             }
         };
         fetchData();
-    }, []);
+    }, [token]);
 
-    // Logic Filter (Search + Status)
+    // Logika Filter & Search
     useEffect(() => {
         let result = transactions;
 
         // 1. Filter Status
-        if (statusFilter !== 'Semua') {
-            result = result.filter(item => item.StatusPeminjaman === statusFilter);
+        if (filterStatus === 'Denda') {
+            // Tampilkan hanya yang punya denda > 0
+            result = result.filter(item => item.Denda > 0);
+        } else if (filterStatus === 'Dipinjam') {
+            result = result.filter(item => item.StatusPeminjaman === 'Dipinjam');
+        } else if (filterStatus === 'Dikembalikan') {
+            result = result.filter(item => item.StatusPeminjaman === 'Dikembalikan');
         }
 
-        // 2. Filter Search (Nama Siswa / Judul Buku)
+        // 2. Search
         if (searchTerm) {
-            const lowerTerm = searchTerm.toLowerCase();
+            const lower = searchTerm.toLowerCase();
             result = result.filter(item => 
-                item.NamaPeminjam.toLowerCase().includes(lowerTerm) ||
-                item.JudulBuku.toLowerCase().includes(lowerTerm)
+                item.JudulBuku.toLowerCase().includes(lower) ||
+                item.NamaPeminjam.toLowerCase().includes(lower)
             );
         }
 
         setFilteredData(result);
-    }, [searchTerm, statusFilter, transactions]);
-
-    // Helper Warna Status
-    const getStatusBadge = (status) => {
-        const styles = {
-            'Dipinjam': 'bg-indigo-50 text-indigo-700 border-indigo-100',
-            'Dikembalikan': 'bg-emerald-50 text-emerald-700 border-emerald-100',
-            'Ditolak': 'bg-red-50 text-red-700 border-red-100',
-            'Menunggu': 'bg-orange-50 text-orange-700 border-orange-100',
-            'Menunggu Pengembalian': 'bg-blue-50 text-blue-700 border-blue-100'
-        };
-        return styles[status] || 'bg-gray-50 text-gray-600';
-    };
+    }, [searchTerm, filterStatus, transactions]);
 
     return (
         <div className="p-6 min-h-screen bg-gray-50/50">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                       <HistoryIcon className="text-indigo-600" size={28} /> Riwayat Transaksi
+                        <History className="text-indigo-600" size={28} /> Riwayat Transaksi
                     </h2>
-                    <p className="text-gray-500 text-sm mt-1">
-                        Rekapan lengkap semua peminjaman dan pengembalian buku.
-                    </p>
-                </div>
-                
-                {/* Tombol Cetak/Export (Opsional untuk pengembangan lanjut) */}
-                <button className="btn btn-outline btn-sm gap-2 border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400">
-                    <Download size={16} /> Export Data
-                </button>
-            </div>
-
-            {/* Filter Bar */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
-                {/* Search */}
-                <div className="relative w-full md:w-96">
-                    <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                    <input 
-                        type="text" 
-                        placeholder="Cari nama siswa atau judul buku..." 
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                    <p className="text-gray-500 text-sm mt-1">Rekap semua peminjaman, pengembalian, dan denda.</p>
                 </div>
 
-                {/* Status Filter */}
-                <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-                    <Filter size={18} className="text-gray-400 min-w-[18px]" />
-                    {['Semua', 'Dipinjam', 'Dikembalikan', 'Menunggu', 'Ditolak'].map(status => (
-                        <button 
-                            key={status}
-                            onClick={() => setStatusFilter(status)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
-                                statusFilter === status 
-                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' 
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                            }`}
-                        >
-                            {status}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Table Content */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                {loading ? (
-                    <div className="p-10 text-center"><span className="loading loading-spinner text-primary"></span></div>
-                ) : filteredData.length === 0 ? (
-                    <div className="p-16 text-center text-gray-400">
-                        <HistoryIcon size={48} className="mx-auto mb-4 opacity-20" />
-                        <p>Tidak ada riwayat transaksi yang ditemukan.</p>
+                {/* Search & Filter Tools */}
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                        <input 
+                            type="text" 
+                            placeholder="Cari siswa atau buku..." 
+                            className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-64"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-gray-50/50 text-gray-500 font-semibold text-xs uppercase tracking-wider border-b border-gray-100">
-                                <tr>
-                                    <th className="p-5 w-16 text-center">No</th>
-                                    <th className="p-5">Siswa</th>
-                                    <th className="p-5">Buku Dipinjam</th>
-                                    <th className="p-5">Waktu Transaksi</th>
-                                    <th className="p-5 text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {filteredData.map((item, index) => (
+                    
+                    <select 
+                        className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer text-sm font-medium text-gray-600"
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                        <option value="All">Semua Status</option>
+                        <option value="Dipinjam">Sedang Dipinjam</option>
+                        <option value="Dikembalikan">Sudah Kembali</option>
+                        <option value="Denda">⚠️ Terkena Denda</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* Tabel Riwayat */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-gray-50 text-gray-600 text-xs uppercase font-semibold border-b border-gray-100">
+                            <tr>
+                                <th className="p-4">Peminjam</th>
+                                <th className="p-4">Buku</th>
+                                <th className="p-4">Tgl Pinjam</th>
+                                <th className="p-4">Tgl Kembali</th>
+                                <th className="p-4 text-center">Status</th>
+                                <th className="p-4 text-right">Denda</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {loading ? (
+                                <tr><td colSpan="6" className="p-8 text-center"><span className="loading loading-spinner text-primary"></span></td></tr>
+                            ) : filteredData.length === 0 ? (
+                                <tr><td colSpan="6" className="p-8 text-center text-gray-400">Data tidak ditemukan.</td></tr>
+                            ) : (
+                                filteredData.map((item) => (
                                     <tr key={item.PeminjamanID} className="hover:bg-slate-50 transition-colors">
-                                        <td className="p-5 text-center text-gray-400 font-medium">{index + 1}</td>
-                                        <td className="p-5">
+                                        
+                                        {/* Kolom Peminjam */}
+                                        <td className="p-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold">
                                                     <User size={14} />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-gray-800 text-sm">{item.NamaPeminjam}</p>
-                                                    <p className="text-xs text-gray-500">@{item.Username || 'user'}</p>
+                                                    <div className="font-bold text-gray-800 text-sm">{item.NamaPeminjam}</div>
+                                                    <div className="text-xs text-gray-400">ID: {item.UserID}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-5">
-                                            <div className="flex items-start gap-2 max-w-xs">
-                                                <BookOpen size={16} className="text-gray-400 mt-0.5 shrink-0" />
-                                                <span className="text-sm font-medium text-gray-700 truncate" title={item.JudulBuku}>
+
+                                        {/* Kolom Buku */}
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <BookOpen size={16} className="text-gray-400 shrink-0" />
+                                                <span className="text-sm font-medium text-gray-700 line-clamp-1 max-w-[150px]" title={item.JudulBuku}>
                                                     {item.JudulBuku}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="p-5">
-                                            <div className="flex flex-col text-xs text-gray-500 gap-1">
-                                                <div className="flex items-center gap-2">
-                                                    <ArrowUpRight size={14} className="text-emerald-500" />
-                                                    Pinjam: <span className="font-medium text-gray-700">{formatDate(item.TanggalPeminjaman)}</span>
-                                                </div>
-                                                {item.TanggalPengembalian && (
-                                                    <div className="flex items-center gap-2">
-                                                        <Calendar size={14} className="text-blue-500" />
-                                                        Kembali: <span className="font-medium text-gray-700">{formatDate(item.TanggalPengembalian)}</span>
-                                                    </div>
-                                                )}
-                                            </div>
+
+                                        {/* Tanggal */}
+                                        <td className="p-4 text-sm text-gray-500">{formatDate(item.TanggalPeminjaman)}</td>
+                                        <td className="p-4 text-sm text-gray-500">
+                                            {item.StatusPeminjaman === 'Dipinjam' || item.StatusPeminjaman === 'Menunggu' ? (
+                                                <span className="text-indigo-400 font-medium">--</span>
+                                            ) : (
+                                                formatDate(item.TanggalPengembalian)
+                                            )}
                                         </td>
-                                        <td className="p-5 text-center">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusBadge(item.StatusPeminjaman)}`}>
+
+                                        {/* Status Badge */}
+                                        <td className="p-4 text-center">
+                                            <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                                item.StatusPeminjaman === 'Dipinjam' ? 'bg-indigo-100 text-indigo-700' :
+                                                item.StatusPeminjaman === 'Dikembalikan' ? 'bg-emerald-100 text-emerald-700' :
+                                                item.StatusPeminjaman === 'Ditolak' ? 'bg-red-100 text-red-700' :
+                                                'bg-orange-100 text-orange-700'
+                                            }`}>
                                                 {item.StatusPeminjaman}
                                             </span>
                                         </td>
+
+                                        {/* Kolom Denda (HIGHLIGHT UTAMA) */}
+                                        <td className="p-4 text-right">
+                                            {item.Denda > 0 ? (
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-red-600 font-bold bg-red-50 px-2 py-1 rounded border border-red-100 whitespace-nowrap">
+                                                        {formatRupiah(item.Denda)}
+                                                    </span>
+                                                    <span className="text-[10px] text-red-400 mt-1 font-medium">Terlambat</span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-gray-400 text-sm">-</span>
+                                            )}
+                                        </td>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
             
             <div className="mt-4 text-center text-xs text-gray-400">
-                Menampilkan {filteredData.length} dari {transactions.length} total transaksi
+                Menampilkan {filteredData.length} transaksi
             </div>
         </div>
     );

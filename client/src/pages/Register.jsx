@@ -164,7 +164,7 @@ const Register = () => {
 
                     <div className="mt-6 text-center text-sm text-gray-600">
                         Sudah punya akun? 
-                        <Link to="/" className="text-primary font-bold hover:underline ml-1">Masuk di sini</Link>
+                        <Link to="/login" className="font-bold text-indigo-600 hover:text-indigo-800"> Masuk disini</Link>
                     </div>
                 </div>
             </motion.div>

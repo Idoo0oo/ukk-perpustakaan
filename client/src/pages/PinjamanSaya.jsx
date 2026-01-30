@@ -242,6 +242,12 @@ const PinjamanSaya = () => {
                                                     </div>
                                                 )}
                                             </div>
+                                            {loan.Denda > 0 && (
+                                            <div className="mt-3 inline-flex items-center gap-2 bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm font-bold border border-red-200 w-full md:w-auto">
+                                                <span className="animate-pulse">⚠️</span> 
+                                                <span>Terlambat! Denda: Rp {loan.Denda.toLocaleString('id-ID')}</span>
+                                            </div>
+                                        )}
                                         </div>
 
                                         {/* Tombol Aksi (Jika Status Dipinjam) */}
