@@ -8,6 +8,30 @@ import {
     BellDot, UserCheck, BookOpen, Activity, ArrowRight, History as HistoryIcon, MessageSquare
 } from 'lucide-react';
 
+// --- IMPORTS UNTUK CHART ---
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import { format, subDays, parseISO } from 'date-fns';
+import { id as localeId } from 'date-fns/locale'; // Locale Indonesia
+
+// --- REGISTER CHART COMPONENTS ---
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
 // Import halaman-halaman Admin
 import KelolaBuku from './admin/KelolaBuku';
 import DataSiswa from './admin/DataSiswa';
@@ -28,7 +52,13 @@ const DashboardHome = () => {
     });
     const [recentActivities, setRecentActivities] = useState([]);
     const [popularBooks, setPopularBooks] = useState([]);
-    const [weeklyStats, setWeeklyStats] = useState([]);
+    
+    // State untuk Chart
+    const [chartData, setChartData] = useState({
+        labels: [],
+        datasets: []
+    });
+
     const [loading, setLoading] = useState(true);
 
     // Format Tanggal untuk aktivitas
@@ -82,18 +112,65 @@ const DashboardHome = () => {
                     .slice(0, 3);
                 setPopularBooks(topBooks);
 
-                // 5. Proses "Grafik Mingguan" (7 Hari Terakhir)
+                // 5. PROSES DATA GRAFIK STACKED (7 Hari Terakhir)
+                // Generate 7 hari terakhir
                 const last7Days = [...Array(7)].map((_, i) => {
-                    const d = new Date();
-                    d.setDate(d.getDate() - i);
-                    return d.toISOString().split('T')[0];
+                    return subDays(new Date(), i);
                 }).reverse();
 
-                const chartData = last7Days.map(date => {
-                    const count = dataPinjam.filter(p => p.TanggalPeminjaman.startsWith(date)).length;
-                    return { date, count, day: new Date(date).toLocaleDateString('id-ID', { weekday: 'short' }) };
+                const labels = last7Days.map(date => format(date, 'dd MMM', { locale: localeId }));
+
+                // Siapkan array kosong untuk setiap status
+                const dataMenunggu = [];
+                const dataDipinjam = [];
+                const dataDikembalikan = [];
+                const dataDitolak = [];
+
+                last7Days.forEach(date => {
+                    const dateStr = format(date, 'yyyy-MM-dd');
+                    
+                    // Filter transaksi pada tanggal tersebut
+                    const transaksiHariIni = dataPinjam.filter(p => p.TanggalPeminjaman.startsWith(dateStr));
+
+                    // Hitung jumlah per status
+                    dataMenunggu.push(transaksiHariIni.filter(p => p.StatusPeminjaman === 'Menunggu').length);
+                    
+                    // Digabung: Dipinjam & Menunggu Pengembalian dianggap "Aktif Dipinjam"
+                    dataDipinjam.push(transaksiHariIni.filter(p => p.StatusPeminjaman === 'Dipinjam' || p.StatusPeminjaman === 'Menunggu Pengembalian').length);
+                    
+                    dataDikembalikan.push(transaksiHariIni.filter(p => p.StatusPeminjaman === 'Dikembalikan').length);
+                    dataDitolak.push(transaksiHariIni.filter(p => p.StatusPeminjaman === 'Ditolak').length);
                 });
-                setWeeklyStats(chartData);
+
+                setChartData({
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Dikembalikan',
+                            data: dataDikembalikan,
+                            backgroundColor: '#10b981', // Emerald-500
+                            borderRadius: 4,
+                        },
+                        {
+                            label: 'Sedang Dipinjam',
+                            data: dataDipinjam,
+                            backgroundColor: '#6366f1', // Indigo-500
+                            borderRadius: 4,
+                        },
+                        {
+                            label: 'Menunggu ACC',
+                            data: dataMenunggu,
+                            backgroundColor: '#f59e0b', // Amber-500
+                            borderRadius: 4,
+                        },
+                        {
+                            label: 'Ditolak',
+                            data: dataDitolak,
+                            backgroundColor: '#ef4444', // Red-500
+                            borderRadius: 4,
+                        },
+                    ],
+                });
 
                 setLoading(false);
             } catch (err) {
@@ -104,6 +181,46 @@ const DashboardHome = () => {
 
         fetchData();
     }, []);
+
+    // Konfigurasi Opsi Chart
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    boxWidth: 8,
+                    font: { size: 11 }
+                }
+            },
+            title: {
+                display: false,
+            },
+            tooltip: {
+                backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                titleFont: { size: 13 },
+                bodyFont: { size: 12 },
+                padding: 10,
+                cornerRadius: 8,
+                displayColors: true,
+            }
+        },
+        scales: {
+            x: {
+                stacked: true, // WAJIB: Agar bertumpuk
+                grid: { display: false },
+                ticks: { font: { size: 11 } }
+            },
+            y: {
+                stacked: true, // WAJIB: Agar bertumpuk
+                beginAtZero: true,
+                grid: { color: '#f3f4f6' },
+                ticks: { stepSize: 1, font: { size: 11 } }
+            },
+        },
+    };
 
     if (loading) return (
         <div className="p-10 text-center flex flex-col items-center justify-center h-96">
@@ -162,32 +279,27 @@ const DashboardHome = () => {
                 ))}
             </div>
 
-            {/* GRAFIK & POPULER */}
+            {/* GRID GRAFIK & POPULER */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* GRAFIK MINGGUAN */}
+                
+                {/* --- GRAFIK STACKED BAR CHART --- */}
                 <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div className="flex justify-between items-center mb-8">
+                    <div className="flex justify-between items-center mb-6">
                         <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-                            <Layers className="text-indigo-500" /> Tren Peminjaman (7 Hari)
+                            <Layers className="text-indigo-500" /> Statistik Transaksi (7 Hari)
                         </h3>
-                        <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">Realtime</span>
+                        {/* Legend manual kecil jika perlu, tapi Chart.js sudah punya legend */}
                     </div>
-                    <div className="flex items-end justify-between h-48 gap-3 pt-4 pb-2 px-2">
-                        {weeklyStats.map((stat, i) => {
-                            const maxVal = Math.max(...weeklyStats.map(s => s.count)) || 1;
-                            const heightPerc = (stat.count / maxVal) * 100;
-                            return (
-                                <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
-                                    <div className="relative w-full bg-gray-100 rounded-t-xl h-full overflow-hidden flex items-end justify-center">
-                                        <div 
-                                            className="w-full bg-indigo-500/80 group-hover:bg-indigo-600 transition-all duration-700 rounded-t-xl"
-                                            style={{ height: `${heightPerc || 5}%` }}
-                                        ></div>
-                                    </div>
-                                    <span className="text-xs text-gray-400 font-medium uppercase">{stat.day}</span>
-                                </div>
-                            );
-                        })}
+                    
+                    {/* Container Chart dengan tinggi fix agar responsif */}
+                    <div className="h-64 w-full">
+                        {chartData.labels.length > 0 ? (
+                            <Bar options={chartOptions} data={chartData} />
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-gray-400 italic">
+                                Belum ada data transaksi minggu ini.
+                            </div>
+                        )}
                     </div>
                 </div>
 
