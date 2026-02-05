@@ -19,7 +19,7 @@ const Register = () => {
             Swal.fire({ 
                 icon: 'success', 
                 title: 'Berhasil!', 
-                text: 'Akun terdaftar, silakan login.',
+                text: 'Akun terdaftar, silakan tunggu konfirmasi dari Admin.',
                 confirmButtonColor: '#570df8'
             });
             navigate('/');
