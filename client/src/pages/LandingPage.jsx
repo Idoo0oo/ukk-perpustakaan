@@ -231,7 +231,7 @@ const LandingPage = () => {
                     </div>
                 </div>
                 <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-                    © 2024 UKK Perpustakaan Digital. All rights reserved.
+                    © 2026 Perpustakaan Digital. All rights reserved.
                 </div>
             </footer>
         </div>

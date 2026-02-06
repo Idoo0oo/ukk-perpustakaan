@@ -40,6 +40,7 @@ import AdminPermintaan from './admin/AdminPermintaan';
 import ValidasiPendaftaran from './admin/ValidasiPendaftaran';
 import RiwayatTransaksi from './admin/RiwayatTransaksi';
 import DataUlasan from './admin/DataUlasan';
+import Laporan from './admin/Laporan'; // <--- INI YG DITAMBAHKAN
 
 // --- KOMPONEN DASHBOARD HOME (REALTIME & MODERN) ---
 const DashboardHome = () => {
@@ -288,10 +289,9 @@ const DashboardHome = () => {
                         <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
                             <Layers className="text-indigo-500" /> Statistik Transaksi (7 Hari)
                         </h3>
-                        {/* Legend manual kecil jika perlu, tapi Chart.js sudah punya legend */}
                     </div>
                     
-                    {/* Container Chart dengan tinggi fix agar responsif */}
+                    {/* Container Chart */}
                     <div className="h-64 w-full">
                         {chartData.labels.length > 0 ? (
                             <Bar options={chartOptions} data={chartData} />
@@ -493,7 +493,8 @@ const AdminDashboard = () => {
                             <Route path="/kategori" element={<KelolaKategori />} />
                             <Route path="/ulasan" element={<DataUlasan />} />
                             <Route path="/siswa" element={<DataSiswa />} />
-                            <Route path="/laporan" element={<div className="text-gray-400 italic">Halaman Laporan</div>} />
+                            {/* Route ke Halaman Laporan yang ASLI */}
+                            <Route path="/laporan" element={<Laporan />} />
                         </Routes>
                     </AnimatePresence>
                 </main>

@@ -237,8 +237,23 @@ const PinjamanSaya = () => {
                                                 </div>
                                                 {loan.TanggalPengembalian && (
                                                     <div className="flex items-center gap-1.5">
-                                                        <AlertCircle size={14} className="text-gray-400" />
-                                                        <span>Batas: <span className="font-medium text-gray-700">{formatDate(loan.TanggalPengembalian)}</span></span>
+                                                        {loan.StatusPeminjaman === 'Dikembalikan' ? (
+                                                            // TAMPILAN JIKA SUDAH DIKEMBALIKAN (Warna Hijau)
+                                                            <>
+                                                                <CheckCircle2 size={14} className="text-emerald-500" />
+                                                                <span className="text-emerald-600 font-medium">
+                                                                    Dikembalikan: <span className="text-gray-700 font-bold">{formatDate(loan.TanggalPengembalian)}</span>
+                                                                </span>
+                                                            </>
+                                                        ) : (
+                                                            // TAMPILAN JIKA MASIH DIPINJAM / MENUNGGU (Warna Oranye/Default)
+                                                            <>
+                                                                <AlertCircle size={14} className="text-orange-400" />
+                                                                <span>
+                                                                    Batas Kembali: <span className="font-medium text-gray-700">{formatDate(loan.TanggalPengembalian)}</span>
+                                                                </span>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>

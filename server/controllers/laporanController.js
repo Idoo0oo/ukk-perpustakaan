@@ -1,25 +1,35 @@
 const db = require('../config/db');
 
 exports.getLaporanPeminjaman = async (req, res) => {
+    const { startDate, endDate } = req.query;
+
     try {
-        // Kita JOIN 3 tabel: peminjaman, user, dan buku
+        // Validasi input tanggal
+        if (!startDate || !endDate) {
+            return res.status(400).json({ message: "Tanggal awal dan akhir harus diisi!" });
+        }
+
         const query = `
             SELECT 
-                p.PeminjamanID,
-                u.NamaLengkap,
-                b.Judul,
-                p.TanggalPeminjaman,
-                p.TanggalPengembalian,
-                p.StatusPeminjaman
+                p.PeminjamanID, 
+                p.TanggalPeminjaman, 
+                p.TanggalPengembalian, 
+                p.StatusPeminjaman, 
+                p.Denda,
+                u.NamaLengkap AS NamaPeminjam,
+                b.Judul AS JudulBuku
             FROM peminjaman p
             JOIN user u ON p.UserID = u.UserID
             JOIN buku b ON p.BukuID = b.BukuID
-            ORDER BY p.TanggalPeminjaman DESC
+            WHERE p.TanggalPeminjaman BETWEEN ? AND ?
+            ORDER BY p.TanggalPeminjaman ASC
         `;
 
-        const [rows] = await db.query(query);
+        const [rows] = await db.query(query, [startDate, endDate]);
         res.json(rows);
+
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: error.message });
     }
 };
