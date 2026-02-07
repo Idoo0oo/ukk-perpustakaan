@@ -1,237 +1,307 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Clock, ShieldCheck, ArrowRight, Library, Users, Star, HelpCircle } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { 
+    BookOpen, Search, ArrowRight, Star, 
+    Library, Zap, Shield, Heart, Menu, X, 
+    TrendingUp, Award, Quote, CheckCircle2 
+} from 'lucide-react';
+
+// --- DATA ---
+const KATEGORI = [
+    { title: "Teknologi & AI", count: "120+ Buku", color: "bg-blue-50 text-blue-600 border-blue-100", icon: <Zap /> },
+    { title: "Fiksi Best Seller", count: "300+ Buku", color: "bg-pink-50 text-pink-600 border-pink-100", icon: <Heart /> },
+    { title: "Sains Modern", count: "80+ Buku", color: "bg-emerald-50 text-emerald-600 border-emerald-100", icon: <Award /> },
+    { title: "Sejarah Dunia", count: "50+ Buku", color: "bg-orange-50 text-orange-600 border-orange-100", icon: <Library /> },
+];
+
+const BUKU_POPULER = [
+    { title: "Atomic Habits", author: "James Clear", rating: "4.9", img: "https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=600&q=80" },
+    { title: "Filosofi Teras", author: "Henry Manampiring", rating: "4.8", img: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80" },
+    { title: "Laskar Pelangi", author: "Andrea Hirata", rating: "4.9", img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&q=80" },
+    { title: "Dunia Sophie", author: "Jostein Gaarder", rating: "4.7", img: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=600&q=80" },
+    { title: "Sapiens", author: "Yuval Noah Harari", rating: "4.8", img: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=600&q=80" },
+];
 
 const LandingPage = () => {
-    return (
-        <div className="min-h-screen bg-white font-sans text-gray-800">
-            {/* --- NAVBAR --- */}
-            <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100 transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <div className="bg-indigo-600 p-2 rounded-lg">
-                            <BookOpen className="text-white" size={24} />
-                        </div>
-                        <span className="text-xl font-bold tracking-tight text-gray-900">PerpusDigital</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Link to="/login" className="text-gray-600 font-medium hover:text-indigo-600 transition hidden sm:block">
-                            Masuk
-                        </Link>
-                        <Link to="/register" className="px-5 py-2.5 bg-indigo-600 text-white rounded-full font-medium hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
-                            Daftar Sekarang
-                        </Link>
-                    </div>
-                </div>
-            </nav>
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
 
-            {/* --- HERO SECTION --- */}
-            <header className="pt-32 pb-20 px-6 bg-gradient-to-b from-indigo-50 to-white overflow-hidden">
-                <div className="max-w-7xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-12">
-                    {/* Teks Hero */}
-                    <div className="flex-1 text-center lg:text-left z-10">
-                        <div className="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold mb-6 animate-fade-in-up">
-                            🚀 Perpustakaan Masa Depan
-                        </div>
-                        <h1 className="text-4xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
-                            Jelajahi Dunia Lewat <span className="text-indigo-600 relative">
-                                Genggamanmu
-                                <svg className="absolute w-full h-3 -bottom-1 left-0 text-indigo-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
-                                    <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
-                                </svg>
+    // Efek Navbar berubah saat di-scroll
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    return (
+        <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900 overflow-x-hidden selection:bg-violet-200 selection:text-violet-900">
+            
+            {/* BACKGROUND PATTERN (DOT GRID) - Memberikan tekstur modern */}
+            <div className="fixed inset-0 z-0 pointer-events-none" style={{
+                backgroundImage: 'radial-gradient(#E2E8F0 1px, transparent 1px)',
+                backgroundSize: '24px 24px'
+            }}></div>
+
+            {/* --- FLOATING NAVBAR (ULTRA MODERN) --- */}
+            <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4">
+                <nav className={`w-full max-w-7xl transition-all duration-300 ${
+                    scrolled 
+                    ? "bg-white/80 backdrop-blur-xl shadow-lg shadow-slate-200/50 rounded-2xl border border-white/50 py-3 px-6" 
+                    : "bg-transparent py-5 px-6"
+                }`}>
+                    <div className="flex justify-between items-center">
+                        {/* Logo */}
+                        <div className="flex items-center gap-2.5">
+                            <div className="bg-gradient-to-br from-violet-600 to-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-violet-500/20">
+                                <BookOpen size={20} fill="currentColor" className="opacity-90" />
+                            </div>
+                            <span className="text-xl font-bold tracking-tight text-slate-900">
+                                Perpus<span className="text-violet-600">Digital</span>.
                             </span>
-                        </h1>
-                        <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                            Akses ribuan koleksi buku digital, manajemen peminjaman yang mudah, dan pengalaman membaca yang menyenangkan. Gratis untuk semua siswa.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                            <Link to="/register" className="px-8 py-4 bg-indigo-600 text-white rounded-full font-bold text-lg hover:bg-indigo-700 transition shadow-xl shadow-indigo-200 flex items-center justify-center gap-2">
-                                Mulai Baca <ArrowRight size={20} />
+                        </div>
+
+                        {/* Auth Buttons */}
+                        <div className="hidden md:flex items-center gap-3">
+                            <Link to="/login" className="text-sm font-bold text-slate-700 hover:text-violet-600 px-4 py-2 transition">
+                                Masuk
                             </Link>
-                            <Link to="/login" className="px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-full font-bold text-lg hover:bg-gray-50 transition flex items-center justify-center">
-                                Punya Akun?
+                            <Link to="/register" className="group relative px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-xl shadow-slate-900/10 overflow-hidden hover:scale-105 transition-all duration-300">
+                                <span className="relative z-10">Daftar Gratis</span>
+                                <div className="absolute inset-0 h-full w-full scale-0 rounded-xl transition-all duration-300 group-hover:scale-100 group-hover:bg-violet-600/100 bg-slate-900"></div>
                             </Link>
+                        </div>
+
+                        {/* Mobile Toggle */}
+                        <button className="md:hidden p-2 text-slate-600 bg-slate-100 rounded-lg" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                        </button>
+                    </div>
+
+                    {/* Mobile Menu Dropdown */}
+                    {isMenuOpen && (
+                        <motion.div 
+                            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+                            className="md:hidden mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2"
+                        >
+                            <Link to="/login" className="w-full py-3 text-center rounded-xl bg-slate-50 text-slate-700 font-semibold">Masuk Akun</Link>
+                            <Link to="/register" className="w-full py-3 text-center rounded-xl bg-violet-600 text-white font-semibold shadow-lg shadow-violet-200">Daftar Sekarang</Link>
+                        </motion.div>
+                    )}
+                </nav>
+            </div>
+
+            {/* --- HERO SECTION (PRECISION FIT) --- */}
+            {/* min-h-screen memastikan tinggi minimal 1 layar. flex items-center memastikan konten di tengah vertikal */}
+            <header className="relative min-h-screen flex items-center pt-28 pb-20 overflow-hidden z-10">
+                
+                {/* Decorative Gradients */}
+                <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-violet-300/30 rounded-full blur-[100px] animate-pulse"></div>
+                <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-pink-300/30 rounded-full blur-[100px]"></div>
+
+                <div className="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+                    
+                    {/* Left Content */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 30 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                    >
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-violet-100/50 border border-violet-200 text-violet-700 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
+                            <span className="w-2 h-2 rounded-full bg-violet-600 animate-ping"></span>
+                            Platform Perpustakaan Digital #1
                         </div>
                         
-                        {/* Trust Badges */}
-                        <div className="mt-10 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start text-sm text-gray-500 font-medium">
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="text-emerald-500" size={18} /> Data Aman & Terenkripsi
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Star className="text-yellow-500" size={18} /> Fitur Favorit Siswa
+                        <h1 className="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] mb-6 tracking-tight">
+                            Jelajahi Dunia <br/>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-500">
+                                Tanpa Batas.
+                            </span>
+                        </h1>
+                        
+                        <p className="text-lg text-slate-500 mb-8 leading-relaxed max-w-lg font-medium">
+                            Akses ribuan koleksi buku, jurnal, dan referensi akademik langsung dari genggamanmu. Mudah, Cepat, dan Gratis untuk Siswa.
+                        </p>
+
+                        {/* Search Input Modern */}
+                        <div className="relative max-w-md group z-20">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 to-pink-600 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                            <div className="relative bg-white rounded-full p-2 flex items-center shadow-xl shadow-slate-200/50 border border-slate-100">
+                                <div className="pl-4 pr-2 text-slate-400">
+                                    <Search size={22} />
+                                </div>
+                                <input 
+                                    type="text" 
+                                    placeholder="Cari buku favoritmu..." 
+                                    className="flex-1 bg-transparent border-none outline-none text-slate-800 placeholder:text-slate-400 font-medium h-10"
+                                />
+                                <button className="bg-slate-900 hover:bg-slate-800 text-white h-10 px-6 rounded-full font-bold text-sm transition-all hover:shadow-lg">
+                                    Cari
+                                </button>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Gambar Hero */}
-                    <div className="flex-1 w-full relative">
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-                        <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-                        <img 
-                            src="https://images.unsplash.com/photo-1495446815901-a7297e633e8d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
-                            alt="Reading Book" 
-                            className="relative rounded-3xl shadow-2xl border-4 border-white transform rotate-2 hover:rotate-0 transition duration-500 w-full object-cover h-[400px] lg:h-[550px]"
-                        />
-                    </div>
+                        {/* Stats / Trust Badges */}
+                        <div className="mt-10 flex items-center gap-6 text-sm font-semibold text-slate-500">
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 className="text-emerald-500" size={18} /> Gratis Akses
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 className="text-emerald-500" size={18} /> Terverifikasi
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 className="text-emerald-500" size={18} /> 24/7 Online
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Right Image (3D Floating Effect) */}
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }} 
+                        animate={{ opacity: 1, scale: 1 }} 
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                        className="relative hidden lg:block perspective-1000"
+                    >
+                        {/* Main Image */}
+                        <motion.div 
+                            animate={{ y: [0, -20, 0] }}
+                            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+                            className="relative z-10 rounded-[3rem] overflow-hidden shadow-2xl shadow-violet-500/20 border-8 border-white bg-white"
+                        >
+                            <img 
+                                src="https://images.unsplash.com/photo-1519682337058-a94d519337bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                                alt="Library App" 
+                                className="w-full h-[550px] object-cover"
+                            />
+                            
+                            {/* Glass Card Overlay */}
+                            <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md p-5 rounded-3xl border border-white/50 shadow-lg flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-400 uppercase">Buku Minggu Ini</p>
+                                    <p className="font-bold text-slate-800">Filosofi Teras</p>
+                                </div>
+                                <div className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold">
+                                    Pinjam
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Decorative Background Elements behind image */}
+                        <div className="absolute top-10 -right-10 w-full h-full bg-slate-100 rounded-[3rem] -z-10 rotate-6 border border-slate-200"></div>
+                    </motion.div>
                 </div>
             </header>
 
-            {/* --- SECTION: STATISTIK (BARU) --- */}
-            <section className="bg-indigo-900 py-16 text-white relative overflow-hidden">
-                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cube-coat.png')]"></div>
-                <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center relative z-10">
-                    <div>
-                        <div className="text-4xl font-extrabold text-indigo-300 mb-2">1.2K+</div>
-                        <div className="text-indigo-100 font-medium">Koleksi Buku</div>
-                    </div>
-                    <div>
-                        <div className="text-4xl font-extrabold text-indigo-300 mb-2">500+</div>
-                        <div className="text-indigo-100 font-medium">Siswa Aktif</div>
-                    </div>
-                    <div>
-                        <div className="text-4xl font-extrabold text-indigo-300 mb-2">24/7</div>
-                        <div className="text-indigo-100 font-medium">Akses Sistem</div>
-                    </div>
-                    <div>
-                        <div className="text-4xl font-extrabold text-indigo-300 mb-2">50+</div>
-                        <div className="text-indigo-100 font-medium">Kategori</div>
-                    </div>
-                </div>
-            </section>
-
-            {/* --- SECTION: FITUR UNGGULAN --- */}
-            <section className="py-24 px-6 bg-gray-50">
+            {/* --- SECTION: CATEGORY (BENTO GRID) --- */}
+            <section className="py-24 px-6 relative z-10 bg-white border-t border-slate-100">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16 max-w-2xl mx-auto">
-                        <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Kenapa Memilih PerpusDigital?</h2>
-                        <p className="text-gray-500 text-lg">Kami menyediakan fitur terbaik untuk memudahkan siswa dan guru dalam kegiatan literasi sekolah.</p>
+                        <h2 className="text-3xl font-bold text-slate-900 mb-4">Kategori Populer</h2>
+                        <p className="text-slate-500">Kami telah mengurasi ribuan buku ke dalam kategori yang mudah dijelajahi.</p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <div className="p-8 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 group">
-                            <div className="w-14 h-14 bg-indigo-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 transition">
-                                <Library className="text-indigo-600 group-hover:text-white transition" size={28} />
-                            </div>
-                            <h3 className="text-xl font-bold mb-3 text-gray-800">Koleksi Lengkap</h3>
-                            <p className="text-gray-500 leading-relaxed">Temukan berbagai genre buku mulai dari Fiksi, Sains, Sejarah, hingga Teknologi terbaru.</p>
-                        </div>
-
-                        <div className="p-8 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 group">
-                            <div className="w-14 h-14 bg-indigo-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 transition">
-                                <Clock className="text-indigo-600 group-hover:text-white transition" size={28} />
-                            </div>
-                            <h3 className="text-xl font-bold mb-3 text-gray-800">Pinjam Mudah</h3>
-                            <p className="text-gray-500 leading-relaxed">Tidak perlu antre. Cukup klik pinjam dari rumah, dan ambil bukunya di perpustakaan.</p>
-                        </div>
-
-                        <div className="p-8 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 group">
-                            <div className="w-14 h-14 bg-indigo-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 transition">
-                                <Users className="text-indigo-600 group-hover:text-white transition" size={28} />
-                            </div>
-                            <h3 className="text-xl font-bold mb-3 text-gray-800">Ulasan Komunitas</h3>
-                            <p className="text-gray-500 leading-relaxed">Lihat apa kata teman-temanmu tentang buku favorit mereka sebelum kamu meminjamnya.</p>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {KATEGORI.map((cat, idx) => (
+                            <motion.div 
+                                key={idx}
+                                whileHover={{ y: -8 }}
+                                className={`p-8 rounded-[2rem] border ${cat.color} bg-white hover:border-transparent hover:shadow-2xl hover:shadow-slate-200 transition-all duration-300 cursor-pointer group`}
+                            >
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-xl bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition`}>
+                                    {cat.icon}
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 mb-2">{cat.title}</h3>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-slate-500 text-sm font-medium">{cat.count}</p>
+                                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-slate-900">
+                                        <ArrowRight size={14} />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
                 </div>
             </section>
 
-            {/* --- SECTION: FAQ (BARU) --- */}
-            <section className="py-24 px-6 bg-white">
-                <div className="max-w-4xl mx-auto">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Pertanyaan Umum</h2>
-                        <p className="text-gray-500">Hal-hal yang sering ditanyakan oleh siswa baru.</p>
+            {/* --- SECTION: TRENDING HORIZONTAL SCROLL (NETFLIX STYLE) --- */}
+            <section className="py-24 bg-slate-900 text-white overflow-hidden relative">
+                {/* Background Glow */}
+                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-violet-500/20 rounded-full blur-[120px]"></div>
+
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
+                    <div className="flex items-center justify-between mb-12">
+                        <div>
+                            <h2 className="text-3xl font-bold mb-2">Sedang Trending</h2>
+                            <p className="text-slate-400">Buku yang paling banyak dipinjam minggu ini.</p>
+                        </div>
+                        <div className="hidden md:flex gap-2">
+                             {/* Hint scroll buttons could go here */}
+                        </div>
                     </div>
 
-                    <div className="space-y-4">
-                        <div className="collapse collapse-plus bg-gray-50 rounded-xl">
-                            <input type="radio" name="my-accordion-3" defaultChecked /> 
-                            <div className="collapse-title text-lg font-medium text-gray-800">
-                                Berapa lama durasi peminjaman buku?
+                    <div className="flex gap-6 overflow-x-auto pb-10 snap-x scrollbar-hide -mx-6 px-6">
+                        {BUKU_POPULER.map((buku, idx) => (
+                            <div key={idx} className="min-w-[260px] md:min-w-[300px] snap-center group">
+                                <div className="relative aspect-[2/3] rounded-3xl overflow-hidden mb-5 bg-slate-800 shadow-2xl shadow-black/50 border border-white/10">
+                                    <img 
+                                        src={buku.img} 
+                                        alt={buku.title} 
+                                        className="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-in-out"
+                                    />
+                                    {/* Overlay Gradient */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60"></div>
+                                    
+                                    {/* Hover Action */}
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 bg-slate-900/40 backdrop-blur-sm">
+                                        <button className="px-6 py-3 bg-white text-slate-900 rounded-full font-bold shadow-lg hover:scale-105 transition">
+                                            Lihat Detail
+                                        </button>
+                                    </div>
+
+                                    <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1 text-xs font-bold border border-white/10">
+                                        <Star size={12} className="text-yellow-400 fill-yellow-400" /> {buku.rating}
+                                    </div>
+                                </div>
+                                <h3 className="text-lg font-bold truncate pr-4">{buku.title}</h3>
+                                <p className="text-slate-400 text-sm">{buku.author}</p>
                             </div>
-                            <div className="collapse-content"> 
-                                <p className="text-gray-600">Siswa dapat meminjam buku maksimal selama 14 hari. Jika terlambat, akan dikenakan denda sesuai ketentuan.</p>
-                            </div>
-                        </div>
-                        <div className="collapse collapse-plus bg-gray-50 rounded-xl">
-                            <input type="radio" name="my-accordion-3" /> 
-                            <div className="collapse-title text-lg font-medium text-gray-800">
-                                Apakah saya bisa meminjam lebih dari satu buku?
-                            </div>
-                            <div className="collapse-content"> 
-                                <p className="text-gray-600">Ya, setiap siswa diperbolehkan meminjam hingga 3 buku dalam satu waktu.</p>
-                            </div>
-                        </div>
-                        <div className="collapse collapse-plus bg-gray-50 rounded-xl">
-                            <input type="radio" name="my-accordion-3" /> 
-                            <div className="collapse-title text-lg font-medium text-gray-800">
-                                Bagaimana cara mendaftar akun?
-                            </div>
-                            <div className="collapse-content"> 
-                                <p className="text-gray-600">Klik tombol "Daftar Sekarang" di pojok kanan atas, isi data diri dengan lengkap, dan tunggu verifikasi dari Admin.</p>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </section>
 
-            {/* --- SECTION: CTA (BARU) --- */}
-            <section className="py-20 px-6">
-                <div className="max-w-6xl mx-auto bg-indigo-600 rounded-3xl p-12 lg:p-20 text-center relative overflow-hidden shadow-2xl shadow-indigo-200">
-                    <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                    <div className="relative z-10">
-                        <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6">Siap Menjelajahi Dunia Buku?</h2>
-                        <p className="text-indigo-100 text-lg mb-10 max-w-2xl mx-auto">Bergabunglah dengan ratusan siswa lainnya dan mulai petualangan literasimu hari ini. Gratis dan mudah.</p>
-                        <div className="flex justify-center gap-4">
-                            <Link to="/register" className="px-8 py-4 bg-white text-indigo-600 rounded-full font-bold text-lg hover:bg-indigo-50 transition shadow-lg">
-                                Daftar Akun Gratis
-                            </Link>
+             {/* --- SECTION: CTA FOOTER --- */}
+             <footer className="bg-white border-t border-slate-200 pt-24 pb-12">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="relative bg-gradient-to-br from-violet-600 to-indigo-700 rounded-[3rem] p-12 md:p-24 text-center overflow-hidden shadow-2xl shadow-violet-200">
+                        {/* Patterns */}
+                        <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '30px 30px'}}></div>
+                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-pink-500 rounded-full blur-[80px] opacity-40"></div>
+                        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500 rounded-full blur-[80px] opacity-40"></div>
+                        
+                        <div className="relative z-10 max-w-3xl mx-auto">
+                            <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-8 tracking-tight">
+                                Mulai Perjalanan Literasimu Hari Ini.
+                            </h2>
+                            <p className="text-violet-100 text-lg md:text-xl mb-10 font-medium">
+                                Bergabung dengan ribuan siswa lainnya. Tanpa biaya, tanpa ribet.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <Link to="/register" className="px-10 py-4 bg-white text-violet-700 rounded-full font-bold text-lg hover:bg-slate-50 transition shadow-xl hover:shadow-2xl hover:-translate-y-1">
+                                    Daftar Akun Gratis
+                                </Link>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            {/* --- FOOTER --- */}
-            <footer className="bg-gray-900 text-white py-16 border-t border-gray-800">
-                <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-                    <div className="col-span-1 md:col-span-1">
-                        <div className="flex items-center gap-2 mb-6">
-                            <BookOpen className="text-indigo-400" size={28} />
-                            <span className="text-xl font-bold">PerpusDigital</span>
+                    <div className="flex flex-col md:flex-row justify-between items-center mt-16 text-slate-400 text-sm font-medium">
+                        <p>&copy; 2026 PerpusDigital SMKN 4 Tangerang.</p>
+                        <div className="flex gap-8 mt-4 md:mt-0">
+                            <a href="#" className="hover:text-violet-600 transition">Kebijakan Privasi</a>
+                            <a href="#" className="hover:text-violet-600 transition">Syarat & Ketentuan</a>
+                            <a href="#" className="hover:text-violet-600 transition">Bantuan</a>
                         </div>
-                        <p className="text-gray-400 leading-relaxed">
-                            Platform perpustakaan digital modern untuk mendukung kegiatan literasi sekolah dengan mudah dan efisien.
-                        </p>
                     </div>
-                    <div>
-                        <h4 className="font-bold text-lg mb-6">Menu</h4>
-                        <ul className="space-y-4 text-gray-400">
-                            <li><Link to="/" className="hover:text-indigo-400 transition">Beranda</Link></li>
-                            <li><Link to="/login" className="hover:text-indigo-400 transition">Katalog Buku</Link></li>
-                            <li><Link to="/register" className="hover:text-indigo-400 transition">Pendaftaran</Link></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-lg mb-6">Kategori Populer</h4>
-                        <ul className="space-y-4 text-gray-400">
-                            <li><span className="hover:text-indigo-400 cursor-pointer">Teknologi</span></li>
-                            <li><span className="hover:text-indigo-400 cursor-pointer">Fiksi & Novel</span></li>
-                            <li><span className="hover:text-indigo-400 cursor-pointer">Sains</span></li>
-                            <li><span className="hover:text-indigo-400 cursor-pointer">Sejarah</span></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-lg mb-6">Kontak</h4>
-                        <ul className="space-y-4 text-gray-400">
-                            <li className="flex gap-3"><span className="text-indigo-400">Email:</span> admin@sekolah.sch.id</li>
-                            <li className="flex gap-3"><span className="text-indigo-400">Telp:</span> (021) 555-0123</li>
-                            <li className="flex gap-3"><span className="text-indigo-400">Alamat:</span> Jl. Pendidikan No. 1, Jakarta</li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-                    © 2026 Perpustakaan Digital. All rights reserved.
                 </div>
             </footer>
         </div>
