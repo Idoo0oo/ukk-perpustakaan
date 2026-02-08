@@ -105,15 +105,18 @@ const DashboardHome = () => {
                 // --- CHART DATA ---
                 const last7Days = [...Array(7)].map((_, i) => subDays(new Date(), i)).reverse();
                 const labels = last7Days.map(date => format(date, 'dd MMM', { locale: localeId }));
-
                 const dataMenunggu = [];
                 const dataDipinjam = [];
                 const dataDikembalikan = [];
                 const dataDitolak = [];
 
-                last7Days.forEach(date => {
-                    const dateStr = format(date, 'yyyy-MM-dd');
-                    const transaksiHariIni = dataPinjam.filter(p => p.TanggalPeminjaman.startsWith(dateStr));
+                last7Days.forEach(dayDate => {
+                    const targetDateStr = format(dayDate, 'yyyy-MM-dd');
+                    const transaksiHariIni = dataPinjam.filter(p => {
+                        if (!p.TanggalPeminjaman) return false;
+                        const tglPinjamLokal = format(new Date(p.TanggalPeminjaman), 'yyyy-MM-dd');
+                        return tglPinjamLokal === targetDateStr;
+                    });
                     
                     dataMenunggu.push(transaksiHariIni.filter(p => p.StatusPeminjaman === 'Menunggu').length);
                     dataDipinjam.push(transaksiHariIni.filter(p => p.StatusPeminjaman === 'Dipinjam' || p.StatusPeminjaman === 'Menunggu Pengembalian').length);
@@ -130,7 +133,6 @@ const DashboardHome = () => {
                         { label: 'Ditolak', data: dataDitolak, backgroundColor: '#ef4444', borderRadius: 4 },
                     ],
                 });
-
                 setLoading(false);
             } catch (err) {
                 console.error("Gagal memuat data dashboard:", err);

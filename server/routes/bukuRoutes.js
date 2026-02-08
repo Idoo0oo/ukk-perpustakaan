@@ -1,40 +1,19 @@
 /**
  * Deskripsi File:
- * File route untuk endpoints buku. Menyediakan CRUD buku dengan multer middleware
- * untuk upload gambar cover buku. Validasi file: JPG, JPEG, PNG max 2MB.
+ * Route untuk endpoint buku. Menggunakan middleware upload yang sudah dipisahkan.
  */
 
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
 const bukuController = require('../controllers/bukuController');
 const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware'); // Import middleware baru
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 2 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        if (mimetype && extname) return cb(null, true);
-        cb(new Error('Hanya file gambar (jpg, jpeg, png) yang diperbolehkan!'));
-    }
-});
-
+// Public / Authenticated Routes
 router.get('/', verifyToken, bukuController.getAllBuku);
 router.get('/:id', verifyToken, bukuController.getBukuById);
 
+// Admin Routes (Upload logic ada di middleware 'upload')
 router.post('/', verifyToken, isAdmin, upload.single('gambar'), bukuController.createBuku);
 router.put('/:id', verifyToken, isAdmin, upload.single('gambar'), bukuController.updateBuku);
 router.delete('/:id', verifyToken, isAdmin, bukuController.deleteBuku);

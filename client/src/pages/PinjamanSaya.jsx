@@ -72,7 +72,7 @@ const PinjamanSaya = () => {
 
         if (formValues) {
             try {
-                await axios.post('http://localhost:5000/api/fitur/ulasan', {
+                await axios.post('http://localhost:5000/api/ulasan', {
                     bukuID,
                     rating: formValues.rating,
                     ulasan: formValues.ulasan

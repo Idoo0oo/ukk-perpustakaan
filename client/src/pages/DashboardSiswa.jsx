@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, BookOpen, Filter, LogOut, LayoutGrid, Book, User, Heart } from 'lucide-react';
+import { Search, BookOpen, Filter, LogOut, LayoutGrid, Book, User, Heart, PartyPopper } from 'lucide-react';
 import usePageTitle from '../hooks/usePageTitle';
 
 const DashboardSiswa = () => {
@@ -46,18 +46,25 @@ const DashboardSiswa = () => {
     }, [navigate, token]);
 
     useEffect(() => {
-        let result = books;
-        if (selectedCategory !== 'All') {
-            result = result.filter(book => book.NamaKategori === selectedCategory);
-        }
-        if (searchTerm) {
-            result = result.filter(book => 
-                book.Judul.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                book.Penulis.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-        setFilteredBooks(result);
-    }, [searchTerm, selectedCategory, books]);
+        let result = books;
+
+        // 1. Filter Kategori (Logika Baru)
+        if (selectedCategory !== 'All') {
+            result = result.filter(book => {
+                if (!book.NamaKategori) return false;
+                const kategoriBuku = book.NamaKategori.split(', '); 
+                return kategoriBuku.includes(selectedCategory);
+            });
+        }
+        if (searchTerm) {
+            result = result.filter(book => 
+                book.Judul.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                book.Penulis.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        
+        setFilteredBooks(result);
+    }, [searchTerm, selectedCategory, books]);
 
     const handlePinjam = async (bukuID, judul) => {
         const { value: lamaPinjam } = await Swal.fire({
@@ -136,7 +143,10 @@ const DashboardSiswa = () => {
 
             <header className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-12 px-6 mb-8 shadow-xl shadow-indigo-200">
                 <div className="max-w-6xl mx-auto">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-2">Halo, {namaUser}! 👋</h1>
+                    <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2">
+                        Halo, {namaUser}! 
+                        <PartyPopper className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
+                    </h1>
                     <p className="text-violet-100 text-lg">Temukan buku favoritmu dan mulai membaca hari ini.</p>
                 </div>
             </header>

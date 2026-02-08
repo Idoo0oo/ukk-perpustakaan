@@ -1,19 +1,20 @@
 /**
  * Deskripsi File:
- * File ini bertanggung jawab untuk mengelola ulasan (review) buku oleh pengguna.
+ * Controller ini menangani fitur Ulasan Buku.
+ * Menggunakan UlasanModel.
  */
 
-const db = require('../config/db');
+const UlasanModel = require('../models/ulasanModel');
 
 exports.addUlasan = async (req, res) => {
     const { bukuID, ulasan, rating } = req.body;
     const userID = req.user.id;
 
+    if (!rating) return res.status(400).json({ message: "Rating wajib diisi!" });
+
     try {
-        await db.query(
-            "INSERT INTO ulasanbuku (UserID, BukuID, Ulasan, Rating) VALUES (?, ?, ?, ?)",
-            [userID, bukuID, ulasan, rating]
-        );
+        // Validasi bisa ditambahkan di sini atau di Model
+        await UlasanModel.create(userID, bukuID, ulasan, rating);
         res.status(201).json({ message: "Ulasan berhasil dikirim!" });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -21,16 +22,28 @@ exports.addUlasan = async (req, res) => {
 };
 
 exports.getUlasanByBuku = async (req, res) => {
-    const { bukuID } = req.params;
     try {
-        const [rows] = await db.query(
-            `SELECT u.*, us.Username 
-             FROM ulasanbuku u 
-             JOIN user us ON u.UserID = us.UserID 
-             WHERE u.BukuID = ?`,
-            [bukuID]
-        );
-        res.json(rows);
+        const ulasan = await UlasanModel.findByBukuId(req.params.bukuID);
+        res.json(ulasan);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.getAllUlasan = async (req, res) => {
+    try {
+        const ulasan = await UlasanModel.findAll();
+        res.json(ulasan);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.deleteUlasan = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await UlasanModel.delete(id);
+        res.json({ message: "Ulasan berhasil dihapus." });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

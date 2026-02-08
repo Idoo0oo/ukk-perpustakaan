@@ -1,238 +1,171 @@
 /**
  * Deskripsi File:
- * File ini bertanggung jawab untuk mengelola proses peminjaman dan pengembalian buku.
- * Termasuk approval admin, perhitungan denda otomatis, dan timezone handling dengan helper function.
+ * Controller lengkap untuk peminjaman. Menangani logika request/response
+ * dan memanggil Model untuk operasi database.
  */
 
-const db = require('../config/db');
+const PeminjamanModel = require('../models/peminjamanModel');
+const BukuModel = require('../models/bukuModel');
 
+// Helper timezone
 const getLocalDate = (date = new Date()) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    const d = new Date(date);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().split('T')[0];
 };
 
-/**
- * Deskripsi Fungsi:
- * Mengajukan peminjaman buku oleh siswa dengan validasi durasi 1-14 hari.
- * Tanggal aktual akan dihitung ulang saat admin approve.
- */
+// 1. Ajukan Peminjaman
 exports.pinjamBuku = async (req, res) => {
     const { bukuID, lamaPinjam } = req.body;
     const userID = req.user.id;
 
-    if (!lamaPinjam || parseInt(lamaPinjam) < 1) {
-        return res.status(400).json({ message: "Lama pinjam minimal 1 hari!" });
+    if (!lamaPinjam || lamaPinjam < 1 || lamaPinjam > 14) {
+        return res.status(400).json({ message: "Lama pinjam harus 1-14 hari!" });
     }
-    if (parseInt(lamaPinjam) > 14) {
-        return res.status(400).json({ message: "Maksimal peminjaman adalah 14 hari!" });
-    }
-
-    const tglPinjam = new Date();
-    const tglKembali = new Date(tglPinjam);
-    tglKembali.setDate(tglPinjam.getDate() + parseInt(lamaPinjam));
-
-    const tanggalPeminjaman = getLocalDate(tglPinjam);
-    const tanggalPengembalian = getLocalDate(tglKembali);
 
     try {
-        const [buku] = await db.query("SELECT Stok FROM buku WHERE BukuID = ?", [bukuID]);
-        if (!buku.length || buku[0].Stok <= 0) return res.status(400).json({ message: "Stok buku habis!" });
+        const stok = await BukuModel.getStok(bukuID);
+        if (stok <= 0) return res.status(400).json({ message: "Stok buku habis!" });
 
-        await db.query(
-            "INSERT INTO peminjaman (UserID, BukuID, TanggalPeminjaman, TanggalPengembalian, StatusPeminjaman) VALUES (?, ?, ?, ?, 'Menunggu')",
-            [userID, bukuID, tanggalPeminjaman, tanggalPengembalian]
+        const tglPinjam = new Date();
+        const tglKembali = new Date();
+        tglKembali.setDate(tglPinjam.getDate() + parseInt(lamaPinjam));
+
+        await PeminjamanModel.create(
+            userID, 
+            bukuID, 
+            getLocalDate(tglPinjam), 
+            getLocalDate(tglKembali)
         );
 
-        res.status(201).json({ message: "Permintaan diajukan! Tanggal akan dimulai saat Admin menyetujui." });
-    } catch (error) { res.status(500).json({ error: error.message }); }
+        res.status(201).json({ message: "Permintaan diajukan! Menunggu persetujuan Admin." });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
-/**
- * Deskripsi Fungsi:
- * Approve peminjaman oleh admin dengan reset tanggal mulai hari ini.
- * Durasi peminjaman dihitung from request data, lalu diterapkan mulai dari hari approval.
- */
+// 2. Admin Approve Peminjaman
 exports.approvePeminjaman = async (req, res) => {
     const { id } = req.params;
-
     try {
-        const [draft] = await db.query("SELECT * FROM peminjaman WHERE PeminjamanID = ?", [id]);
-        if (draft.length === 0) return res.status(404).json({ message: "Data tidak ditemukan" });
+        const pinjam = await PeminjamanModel.findById(id);
+        if (!pinjam) return res.status(404).json({ message: "Data tidak ditemukan" });
 
-        const data = draft[0];
+        const stok = await BukuModel.getStok(pinjam.BukuID);
+        if (stok <= 0) return res.status(400).json({ message: "Stok buku habis saat ini!" });
 
-        const [buku] = await db.query("SELECT Stok FROM buku WHERE BukuID = ?", [data.BukuID]);
-        if (buku[0].Stok <= 0) return res.status(400).json({ message: "Stok buku habis saat ini!" });
-
-        const oldStart = new Date(data.TanggalPeminjaman);
-        const oldEnd = new Date(data.TanggalPengembalian);
-
-        const diffTime = Math.abs(oldEnd - oldStart);
-        let durasiHari = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        if (durasiHari < 1) durasiHari = 1;
+        // Hitung ulang durasi agar fair (dimulai hari ini)
+        const oldStart = new Date(pinjam.TanggalPeminjaman);
+        const oldEnd = new Date(pinjam.TanggalPengembalian);
+        const durasiHari = Math.max(1, Math.ceil((oldEnd - oldStart) / (1000 * 3600 * 24)));
 
         const today = new Date();
         const newDeadline = new Date(today);
         newDeadline.setDate(today.getDate() + durasiHari);
 
-        const realStart = getLocalDate(today);
-        const realEnd = getLocalDate(newDeadline);
+        await PeminjamanModel.updateStatus(id, 'Dipinjam', getLocalDate(today), getLocalDate(newDeadline));
+        await BukuModel.updateStok(pinjam.BukuID, -1); // Kurangi stok
 
-        await db.query(
-            "UPDATE peminjaman SET TanggalPeminjaman = ?, TanggalPengembalian = ?, StatusPeminjaman = 'Dipinjam' WHERE PeminjamanID = ?",
-            [realStart, realEnd, id]
-        );
-        await db.query("UPDATE buku SET Stok = Stok - 1 WHERE BukuID = ?", [data.BukuID]);
-
-        res.json({ message: "Peminjaman disetujui! Tanggal mulai berjalan hari ini." });
-    } catch (error) { res.status(500).json({ error: error.message }); }
+        res.json({ message: "Peminjaman disetujui!" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
+// 3. Admin Reject Peminjaman
 exports.rejectPeminjaman = async (req, res) => {
     const { id } = req.params;
     try {
-        await db.query("UPDATE peminjaman SET StatusPeminjaman = 'Ditolak' WHERE PeminjamanID = ?", [id]);
+        await PeminjamanModel.updateStatus(id, 'Ditolak');
         res.json({ message: "Peminjaman ditolak." });
-    } catch (error) { res.status(500).json({ error: error.message }); }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
-/**
- * Deskripsi Fungsi:
- * Konfirmasi pengembalian buku dengan perhitungan denda otomatis.
- * Denda = Rp 1.000 per hari keterlambatan.
- */
+// 4. User Ajukan Pengembalian
+exports.ajukanPengembalian = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const pinjam = await PeminjamanModel.findById(id);
+        if (!pinjam) return res.status(404).json({ message: "Data tidak ditemukan" });
+        if (pinjam.StatusPeminjaman !== 'Dipinjam') return res.status(400).json({ message: "Buku tidak sedang dipinjam!" });
+
+        await PeminjamanModel.updateStatus(id, 'Menunggu Pengembalian');
+        res.json({ message: "Pengajuan berhasil! Segera serahkan buku ke petugas." });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// 5. Admin Konfirmasi Pengembalian (Cek Denda)
 exports.kembalikanBuku = async (req, res) => {
     const { id } = req.params;
     const DENDA_PER_HARI = 1000;
 
     try {
-        const [data] = await db.query("SELECT * FROM peminjaman WHERE PeminjamanID = ?", [id]);
-        if (data.length === 0) return res.status(404).json({ message: "Data tidak ditemukan" });
-
-        const pinjam = data[0];
+        const pinjam = await PeminjamanModel.findById(id);
+        if (!pinjam) return res.status(404).json({ message: "Data tidak ditemukan" });
 
         const tglJatuhTempo = new Date(pinjam.TanggalPengembalian);
         const tglDikembalikan = new Date();
+        tglJatuhTempo.setHours(0,0,0,0);
+        tglDikembalikan.setHours(0,0,0,0);
 
-        tglJatuhTempo.setHours(0, 0, 0, 0);
-        tglDikembalikan.setHours(0, 0, 0, 0);
-
-        let totalDenda = 0;
-        let terlambatHari = 0;
+        let denda = 0;
+        let terlambat = 0;
 
         if (tglDikembalikan > tglJatuhTempo) {
-            const selisihWaktu = tglDikembalikan - tglJatuhTempo;
-            terlambatHari = Math.ceil(selisihWaktu / (1000 * 60 * 60 * 24));
-            totalDenda = terlambatHari * DENDA_PER_HARI;
+            terlambat = Math.ceil((tglDikembalikan - tglJatuhTempo) / (1000 * 3600 * 24));
+            denda = terlambat * DENDA_PER_HARI;
         }
 
-        const tglRealDB = getLocalDate(new Date());
+        await PeminjamanModel.finalizeReturn(id, 'Dikembalikan', denda, getLocalDate(tglDikembalikan));
+        await BukuModel.updateStok(pinjam.BukuID, 1); // Tambah stok kembali
 
-        await db.query(
-            "UPDATE peminjaman SET StatusPeminjaman = 'Dikembalikan', Denda = ?, TanggalPengembalian = ? WHERE PeminjamanID = ?",
-            [totalDenda, tglRealDB, id]
-        );
-
-        await db.query("UPDATE buku SET Stok = Stok + 1 WHERE BukuID = ?", [pinjam.BukuID]);
-
-        res.json({
-            message: "Buku berhasil dikembalikan.",
-            denda: totalDenda,
-            terlambat: terlambatHari
-        });
-
-    } catch (error) { res.status(500).json({ error: error.message }); }
+        res.json({ message: "Buku dikembalikan.", denda, terlambat });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
-exports.ajukanPengembalian = async (req, res) => {
-    const { id } = req.params;
-    try {
-        const [cek] = await db.query("SELECT StatusPeminjaman FROM peminjaman WHERE PeminjamanID = ?", [id]);
-
-        if (cek.length === 0) return res.status(404).json({ message: "Data tidak ditemukan" });
-        if (cek[0].StatusPeminjaman !== 'Dipinjam') return res.status(400).json({ message: "Buku tidak sedang dipinjam!" });
-
-        await db.query("UPDATE peminjaman SET StatusPeminjaman = 'Menunggu Pengembalian' WHERE PeminjamanID = ?", [id]);
-
-        res.json({ message: "Pengajuan berhasil! Segera serahkan buku ke petugas." });
-    } catch (error) { res.status(500).json({ error: error.message }); }
-};
-
+// 6. Get All (Untuk User biasa lihat pinjaman sendiri, atau base query)
 exports.getAllPeminjaman = async (req, res) => {
     try {
-        let query = `
-            SELECT 
-                p.PeminjamanID, p.UserID, p.BukuID,
-                p.TanggalPeminjaman, p.TanggalPengembalian, p.StatusPeminjaman, p.Denda,
-                b.Judul AS JudulBuku, b.Judul,
-                u.NamaLengkap AS NamaPeminjam,
-                (SELECT COUNT(*) FROM ulasanbuku ub WHERE ub.UserID = p.UserID AND ub.BukuID = p.BukuID) AS SudahDiulas
-            FROM peminjaman p
-            JOIN buku b ON p.BukuID = b.BukuID
-            JOIN user u ON p.UserID = u.UserID
-        `;
-
-        const params = [];
-        if (req.user.role !== 'admin' && req.user.role !== 'petugas') {
-            query += " WHERE p.UserID = ?";
-            params.push(req.user.id);
-        }
-
-        query += " ORDER BY p.PeminjamanID DESC";
-
-        const [rows] = await db.query(query, params);
-        res.json(rows);
-    } catch (error) { res.status(500).json({ error: error.message }); }
+        const userID = (req.user.role === 'admin' || req.user.role === 'petugas') ? null : req.user.id;
+        const data = await PeminjamanModel.findAll(userID);
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
+// 7. Get Pending Approval (Khusus Admin)
 exports.getPeminjamanPending = async (req, res) => {
     try {
-        const query = `
-            SELECT 
-                p.PeminjamanID, p.TanggalPeminjaman, p.StatusPeminjaman,
-                b.Judul AS JudulBuku, b.Penulis, u.NamaLengkap AS NamaPeminjam
-            FROM peminjaman p
-            JOIN buku b ON p.BukuID = b.BukuID
-            JOIN user u ON p.UserID = u.UserID
-            WHERE p.StatusPeminjaman = 'Menunggu'
-            ORDER BY p.TanggalPeminjaman ASC
-        `;
-        const [rows] = await db.query(query);
-        res.json(rows);
-    } catch (error) { res.status(500).json({ error: error.message }); }
+        const data = await PeminjamanModel.findPending();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
+// 8. Get Return Requests (Khusus Admin)
 exports.getPengembalianPending = async (req, res) => {
     try {
-        const query = `
-            SELECT 
-                p.PeminjamanID, p.TanggalPeminjaman, p.TanggalPengembalian,
-                b.Judul AS JudulBuku, u.NamaLengkap AS NamaPeminjam
-            FROM peminjaman p
-            JOIN buku b ON p.BukuID = b.BukuID
-            JOIN user u ON p.UserID = u.UserID
-            WHERE p.StatusPeminjaman = 'Menunggu Pengembalian'
-            ORDER BY p.TanggalPengembalian ASC
-        `;
-        const [rows] = await db.query(query);
-        res.json(rows);
-    } catch (error) { res.status(500).json({ error: error.message }); }
+        const data = await PeminjamanModel.findReturnRequests();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
+// 9. Get History (Khusus Admin)
 exports.getAllHistory = async (req, res) => {
     try {
-        const query = `
-            SELECT 
-                p.PeminjamanID, p.TanggalPeminjaman, p.TanggalPengembalian, p.StatusPeminjaman,
-                b.Judul AS JudulBuku, u.NamaLengkap AS NamaPeminjam, u.Username
-            FROM peminjaman p
-            JOIN buku b ON p.BukuID = b.BukuID
-            JOIN user u ON p.UserID = u.UserID
-            ORDER BY p.TanggalPeminjaman DESC
-        `;
-        const [rows] = await db.query(query);
-        res.json(rows);
-    } catch (error) { res.status(500).json({ error: error.message }); }
+        const data = await PeminjamanModel.findAllHistory();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };

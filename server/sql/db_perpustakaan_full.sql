@@ -1,11 +1,17 @@
--- Buat Database (Jika belum ada)
-CREATE DATABASE IF NOT EXISTS ukk_perpustakaan;
+-- ==========================================
+-- DATABASE INITIALIZATION
+-- ==========================================
+-- Hapus database lama jika ada (agar bersih saat reset)
+DROP DATABASE IF EXISTS ukk_perpustakaan;
+
+-- Buat database baru
+CREATE DATABASE ukk_perpustakaan;
 USE ukk_perpustakaan;
 
 -- ==========================================
 -- 1. Tabel User
 -- ==========================================
-CREATE TABLE IF NOT EXISTS user (
+CREATE TABLE user (
     UserID INT AUTO_INCREMENT PRIMARY KEY,
     Username VARCHAR(255) NOT NULL UNIQUE,
     Password VARCHAR(255) NOT NULL,
@@ -13,13 +19,14 @@ CREATE TABLE IF NOT EXISTS user (
     NamaLengkap VARCHAR(255) NOT NULL,
     Alamat TEXT,
     Role ENUM('admin', 'petugas', 'peminjam') DEFAULT 'peminjam',
+    Status ENUM('Menunggu', 'Aktif', 'Ditolak') DEFAULT 'Menunggu', -- Penting: Default Menunggu untuk Peminjam
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- ==========================================
 -- 2. Tabel Kategori Buku
 -- ==========================================
-CREATE TABLE IF NOT EXISTS kategoribuku (
+CREATE TABLE kategoribuku (
     KategoriID INT AUTO_INCREMENT PRIMARY KEY,
     NamaKategori VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB;
@@ -27,22 +34,22 @@ CREATE TABLE IF NOT EXISTS kategoribuku (
 -- ==========================================
 -- 3. Tabel Buku
 -- ==========================================
-CREATE TABLE IF NOT EXISTS buku (
+CREATE TABLE buku (
     BukuID INT AUTO_INCREMENT PRIMARY KEY,
     Judul VARCHAR(255) NOT NULL,
     Penulis VARCHAR(255) NOT NULL,
     Penerbit VARCHAR(255) NOT NULL,
     TahunTerbit INT NOT NULL,
     Stok INT DEFAULT 0,
-    Gambar VARCHAR(255) DEFAULT NULL, -- Untuk menyimpan nama file gambar
-    Deskripsi TEXT DEFAULT NULL,
+    Gambar VARCHAR(255) DEFAULT NULL,
+    -- RatingRataRata & Deskripsi TIDAK DIMASUKKAN (Sesuai kode backend saat ini)
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- ==========================================
 -- 4. Tabel Relasi Kategori & Buku
 -- ==========================================
-CREATE TABLE IF NOT EXISTS kategoribuku_relasi (
+CREATE TABLE kategoribuku_relasi (
     KategoriBukuID INT AUTO_INCREMENT PRIMARY KEY,
     BukuID INT NOT NULL,
     KategoriID INT NOT NULL,
@@ -53,12 +60,12 @@ CREATE TABLE IF NOT EXISTS kategoribuku_relasi (
 -- ==========================================
 -- 5. Tabel Peminjaman (CORE SYSTEM)
 -- ==========================================
-CREATE TABLE IF NOT EXISTS peminjaman (
+CREATE TABLE peminjaman (
     PeminjamanID INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT NOT NULL,
     BukuID INT NOT NULL,
     TanggalPeminjaman DATE NOT NULL,
-    TanggalPengembalian DATE NOT NULL, -- Berfungsi sebagai Deadline saat dipinjam, & Tgl Realisasi saat dikembalikan
+    TanggalPengembalian DATE NOT NULL,
     StatusPeminjaman ENUM('Menunggu', 'Dipinjam', 'Ditolak', 'Menunggu Pengembalian', 'Dikembalikan') DEFAULT 'Menunggu',
     Denda DECIMAL(10, 2) DEFAULT 0,
     FOREIGN KEY (UserID) REFERENCES user(UserID) ON DELETE CASCADE,
@@ -68,21 +75,21 @@ CREATE TABLE IF NOT EXISTS peminjaman (
 -- ==========================================
 -- 6. Tabel Ulasan Buku
 -- ==========================================
-CREATE TABLE IF NOT EXISTS ulasanbuku (
+CREATE TABLE ulasanbuku (
     UlasanID INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT NOT NULL,
     BukuID INT NOT NULL,
     Ulasan TEXT,
     Rating INT CHECK (Rating >= 1 AND Rating <= 5),
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    TanggalUlasan TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Ganti CreatedAt jadi TanggalUlasan agar sesuai kode (opsional)
     FOREIGN KEY (UserID) REFERENCES user(UserID) ON DELETE CASCADE,
     FOREIGN KEY (BukuID) REFERENCES buku(BukuID) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ==========================================
--- 7. Tabel Koleksi Pribadi (Opsional/Tambahan)
+-- 7. Tabel Koleksi Pribadi
 -- ==========================================
-CREATE TABLE IF NOT EXISTS koleksipribadi (
+CREATE TABLE koleksipribadi (
     KoleksiID INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT NOT NULL,
     BukuID INT NOT NULL,
@@ -90,8 +97,28 @@ CREATE TABLE IF NOT EXISTS koleksipribadi (
     FOREIGN KEY (BukuID) REFERENCES buku(BukuID) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- INSERT DATA ADMIN DEFAULT (Jaga-jaga jika tabel kosong)
--- Password default: admin123 (Harus di-hash jika sistem login pakai bcrypt, ini contoh raw)
--- Pastikan kamu menyesuaikan hash password ini dengan cara register manual atau seeder.
--- INSERT INTO user (Username, Password, Email, NamaLengkap, Alamat, Role) 
--- VALUES ('admin', '$2b$10$X/....YourHashedPasswordHere...', 'admin@gmail.com', 'Administrator', 'Sekolah', 'admin');
+
+-- ==========================================
+-- DATA SEEDING (DATA AWAL)
+-- ==========================================
+
+-- 1. Insert Kategori Default
+INSERT INTO kategoribuku (NamaKategori) VALUES 
+('Fiksi'), 
+('Non-Fiksi'), 
+('Sains & Teknologi'), 
+('Sejarah'), 
+('Komik');
+
+-- 2. Insert Admin Default
+-- PENTING: Password ini hash dari 'admin123'
+-- Jika login gagal, jalankan 'node seedAdmin.js' di terminal server
+INSERT INTO user (Username, Password, Email, NamaLengkap, Alamat, Role, Status) 
+VALUES 
+('admin', '$2b$10$YourGeneratedHashHere', 'admin@sekolah.sch.id', 'Administrator Perpustakaan', 'Ruang IT', 'admin', 'Aktif'),
+('petugas', '$2b$10$YourGeneratedHashHere', 'petugas@sekolah.sch.id', 'Petugas Perpus', 'Meja Sirkulasi', 'petugas', 'Aktif');
+
+-- Catatan untuk Pengguna (Git Clone):
+-- Password admin di atas hanyalah contoh hash placeholder.
+-- SANGAT DISARANKAN untuk menjalankan perintah: 'npm run seed' atau 'node seedAdmin.js' 
+-- di folder server setelah import database ini agar mendapatkan akun admin yang valid.

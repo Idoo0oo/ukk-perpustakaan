@@ -14,7 +14,7 @@ const DataUlasan = () => {
     // Fetch Data
     const fetchReviews = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/fitur/admin/all-ulasan', {
+            const res = await axios.get('http://localhost:5000/api/ulasan/admin/all', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setReviews(res.data);
@@ -30,14 +30,16 @@ const DataUlasan = () => {
 
     // Filter Search
     useEffect(() => {
-        const lower = searchTerm.toLowerCase();
-        const results = reviews.filter(r => 
-            r.NamaLengkap.toLowerCase().includes(lower) || 
-            r.Judul.toLowerCase().includes(lower) ||
-            r.Ulasan.toLowerCase().includes(lower)
-        );
-        setFilteredReviews(results);
-    }, [searchTerm, reviews]);
+        const lower = searchTerm.toLowerCase();
+        const results = reviews.filter(r => {
+            const nama = (r.NamaLengkap || '').toLowerCase();
+            const judul = (r.Judul || '').toLowerCase();
+            const ulasan = (r.Ulasan || '').toLowerCase();
+
+            return nama.includes(lower) || judul.includes(lower) || ulasan.includes(lower);
+        });
+        setFilteredReviews(results);
+    }, [searchTerm, reviews]);
 
     // Hapus Ulasan
     const handleDelete = async (id) => {
@@ -52,7 +54,7 @@ const DataUlasan = () => {
 
         if (result.isConfirmed) {
             try {
-                await axios.delete(`http://localhost:5000/api/fitur/admin/ulasan/${id}`, {
+                await axios.delete(`http://localhost:5000/api/ulasan/admin/:id`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 Swal.fire('Terhapus', 'Ulasan berhasil dihapus.', 'success');
