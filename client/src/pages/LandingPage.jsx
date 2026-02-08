@@ -6,6 +6,7 @@ import {
     Library, Zap, Shield, Heart, Menu, X, 
     TrendingUp, Award, Quote, CheckCircle2 
 } from 'lucide-react';
+import usePageTitle from '../hooks/usePageTitle';
 
 // --- DATA ---
 const KATEGORI = [
@@ -24,6 +25,7 @@ const BUKU_POPULER = [
 ];
 
 const LandingPage = () => {
+    usePageTitle('Selamat Datang');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 

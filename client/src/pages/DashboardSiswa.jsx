@@ -3,8 +3,10 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, BookOpen, Filter, LogOut, LayoutGrid, Book, User, Heart } from 'lucide-react';
+import usePageTitle from '../hooks/usePageTitle';
 
 const DashboardSiswa = () => {
+    usePageTitle('Dashboard Siswa');
     const [books, setBooks] = useState([]);
     const [filteredBooks, setFilteredBooks] = useState([]);
     const [categories, setCategories] = useState([]);

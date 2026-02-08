@@ -10,8 +10,10 @@ import { motion } from 'framer-motion';
 import { UserPlus, User, Mail, Lock, UserCheck, MapPin, Eye, EyeOff, BookOpen } from 'lucide-react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import usePageTitle from '../hooks/usePageTitle';
 
 const Register = () => {
+    usePageTitle('Daftar');
     const [formData, setFormData] = useState({
         username: '', password: '', email: '', namaLengkap: '', alamat: '', role: 'peminjam'
     });

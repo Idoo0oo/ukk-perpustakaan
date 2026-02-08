@@ -10,8 +10,10 @@ import { motion } from 'framer-motion';
 import { LogIn, User, Lock, BookOpen, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import usePageTitle from '../hooks/usePageTitle';
 
 const Login = () => {
+    usePageTitle('Masuk');
     const [showPassword, setShowPassword] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');

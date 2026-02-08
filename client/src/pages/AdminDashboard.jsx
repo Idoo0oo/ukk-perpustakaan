@@ -7,6 +7,7 @@ import {
     LayoutDashboard, Book, Layers, Users, FileText, LogOut, Menu, X, 
     BellDot, UserCheck, BookOpen, Activity, ArrowRight, History as HistoryIcon, MessageSquare
 } from 'lucide-react';
+import usePageTitle from '../hooks/usePageTitle';
 
 // --- IMPORTS UNTUK CHART ---
 import {
@@ -43,6 +44,7 @@ import Laporan from './admin/Laporan';
 
 // --- KOMPONEN DASHBOARD HOME ---
 const DashboardHome = () => {
+    usePageTitle('Dashboard Admin');
     const [stats, setStats] = useState({
         totalBuku: 0,
         totalSiswa: 0,
