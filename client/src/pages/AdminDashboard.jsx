@@ -343,9 +343,24 @@ const AdminDashboard = () => {
 
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shadow-sm">
-                    <div className="flex items-center gap-2">
-                         {!isSidebarOpen && <button onClick={() => setSidebarOpen(true)} className="md:hidden mr-2"><Menu /></button>}
-                         <span className="text-gray-400 text-sm font-medium">Admin Panel</span>
+                    <div className="flex items-center gap-3">
+                    {/* Tombol Menu Mobile Tetap Ada */}
+                    {!isSidebarOpen && (
+                        <button onClick={() => setSidebarOpen(true)} className="md:hidden p-1 text-gray-500 hover:text-indigo-600 transition-colors">
+                        <Menu size={20} />
+                        </button>
+                    )}
+                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 shadow-sm">
+                        <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+                        </span>
+                        <span className="text-xs font-bold tracking-widest text-indigo-700 uppercase">
+                        Admin Panel
+                        </span>
+                    </div>
+                    {/* Versi Mobile (Lebih Simple) */}
+                    <span className="sm:hidden text-sm font-bold text-gray-800">Admin</span>
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="text-right hidden sm:block">
