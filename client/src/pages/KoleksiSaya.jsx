@@ -46,26 +46,32 @@ const KoleksiSaya = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
-             {/* Navbar */}
-             <nav className="bg-white shadow-sm sticky top-0 z-30 px-6 py-4 flex justify-between items-center mb-6">
-                <div className="flex items-center gap-2">
-                    <Book className="text-indigo-600" size={28} />
-                    <span className="text-xl font-bold tracking-tight text-gray-800">PerpusDigital</span>
+            {/* Navbar */}
+            <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-30 px-6 py-4 flex justify-between items-center border-b border-slate-200">
+                {/* LOGO BRANDING */}
+                <div className="flex items-center gap-2.5">
+                    <div className="bg-gradient-to-br from-violet-600 to-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-violet-500/20">
+                        <BookOpen size={24} fill="currentColor" className="opacity-90" />
+                    </div>
+                    <span className="text-xl font-bold tracking-tight text-slate-900 hidden sm:block">
+                        Perpus<span className="text-violet-600">Digital</span>.
+                    </span>
                 </div>
+
                 <div className="flex items-center gap-6">
-                    <Link to="/peminjam" className="font-medium text-gray-500 hover:text-indigo-600 transition">Katalog</Link>
-                    <Link to="/peminjam/koleksi" className="font-medium text-indigo-600">Koleksi Saya</Link>
-                    <Link to="/peminjam/pinjaman-saya" className="font-medium text-gray-500 hover:text-indigo-600 transition">Pinjaman Saya</Link>
-                    <div className="h-6 w-px bg-gray-200"></div>
+                    <Link to="/peminjam" className="font-medium text-slate-500 hover:text-violet-600 transition">Katalog</Link>
+                    <Link to="/peminjam/koleksi" className="font-semibold text-violet-600 bg-violet-50 px-3 py-1.5 rounded-lg">Koleksi Saya</Link>
+                    <Link to="/peminjam/pinjaman-saya" className="font-medium text-slate-500 hover:text-violet-600 transition">Pinjaman Saya</Link>
+                    <div className="h-6 w-px bg-slate-200"></div>
                     <button onClick={handleLogout} className="flex items-center gap-2 text-red-500 hover:text-red-600 font-medium text-sm">
-                        <LogOut size={18} /> Keluar
+                        <LogOut size={18} /> <span className="hidden sm:inline">Keluar</span>
                     </button>
                 </div>
             </nav>
 
             <div className="p-6 max-w-6xl mx-auto">
                 <div className="mb-8">
-                    <Link to="/peminjam" className="text-gray-400 hover:text-gray-600 flex items-center gap-1 text-sm mb-2"><ArrowLeft size={16}/> Kembali ke Katalog</Link>
+                    <Link to="/peminjam" className="text-gray-400 hover:text-gray-600 flex items-center gap-1 text-sm mb-2"><ArrowLeft size={16} /> Kembali ke Katalog</Link>
                     <h2 className="text-2xl font-bold flex items-center gap-2">
                         <BookOpen className="text-pink-500" /> Koleksi Pribadi
                     </h2>
@@ -83,13 +89,13 @@ const KoleksiSaya = () => {
                         {books.map(book => (
                             <div key={book.KoleksiID} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full relative group hover:shadow-md transition-all">
                                 <div className="h-48 bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                                     {book.Gambar ? (
+                                    {book.Gambar ? (
                                         <img src={`http://localhost:5000/uploads/${book.Gambar}`} className="w-full h-full object-cover" alt={book.Judul} />
                                     ) : (
                                         <Book size={48} className="text-gray-300" />
                                     )}
                                     {/* Tombol Hapus */}
-                                    <button 
+                                    <button
                                         onClick={() => handleRemove(book.BukuID)}
                                         className="absolute top-2 right-2 bg-white/90 p-2 rounded-full text-red-500 shadow-sm hover:bg-red-50 transition-colors"
                                         title="Hapus dari Koleksi"

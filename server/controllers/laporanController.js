@@ -1,10 +1,14 @@
+/**
+ * Deskripsi File:
+ * File ini bertanggung jawab untuk generate laporan peminjaman berdasarkan rentang tanggal.
+ */
+
 const db = require('../config/db');
 
 exports.getLaporanPeminjaman = async (req, res) => {
     const { startDate, endDate } = req.query;
 
     try {
-        // Validasi input tanggal
         if (!startDate || !endDate) {
             return res.status(400).json({ message: "Tanggal awal dan akhir harus diisi!" });
         }

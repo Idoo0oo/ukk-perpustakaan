@@ -1,6 +1,16 @@
+/**
+ * Deskripsi File:
+ * File ini bertanggung jawab untuk mengelola data pengguna (user) peminjam,
+ * termasuk verifikasi akun baru oleh admin.
+ */
+
 const db = require('../config/db');
 
-// Ambil semua user (bisa difilter status via query param ?status=Menunggu)
+/**
+ * Deskripsi Fungsi:
+ * Mengambil semua user dengan role 'peminjam'. Mendukung filter berdasarkan status
+ * (Menunggu, Aktif) melalui query parameter.
+ */
 exports.getAllUsers = async (req, res) => {
     try {
         const { status } = req.query;
@@ -19,7 +29,10 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
-// Fitur Admin: Verifikasi Akun User
+/**
+ * Deskripsi Fungsi:
+ * Mengaktifkan akun pengguna yang berstatus 'Menunggu' menjadi 'Aktif' oleh admin.
+ */
 exports.verifyUser = async (req, res) => {
     const { id } = req.params;
     try {
@@ -30,7 +43,10 @@ exports.verifyUser = async (req, res) => {
     }
 };
 
-// Fitur Admin: Hapus User (jika pendaftaran ditolak)
+/**
+ * Deskripsi Fungsi:
+ * Menghapus data pengguna, biasanya digunakan saat admin menolak pendaftaran.
+ */
 exports.deleteUser = async (req, res) => {
     const { id } = req.params;
     try {

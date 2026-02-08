@@ -1,3 +1,9 @@
+/**
+ * Deskripsi File:
+ * File ini bertanggung jawab untuk konfigurasi koneksi database MySQL dengan connection pooling.
+ * Menggunakan mysql2/promise untuk mendukung async/await pattern.
+ */
+
 const mysql = require('mysql2');
 require('dotenv').config();
 
@@ -11,5 +17,4 @@ const db = mysql.createPool({
     queueLimit: 0
 });
 
-// Gunakan .promise() agar kita bisa menggunakan async/await di controller
 module.exports = db.promise();

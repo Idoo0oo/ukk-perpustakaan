@@ -1,23 +1,26 @@
+/**
+ * Deskripsi File:
+ * File ini bertanggung jawab untuk fitur koleksi pribadi (bookmark) dan ulasan buku.
+ * Mendukung toggle bookmark dan validasi ulasan berdasarkan riwayat peminjaman.
+ */
+
 const db = require('../config/db');
 
-// --- FITUR KOLEKSI PRIBADI (BOOKMARK) ---
-
-// 1. Tambah/Hapus Koleksi (Toggle)
-// Kalau belum ada -> Disimpan. Kalau sudah ada -> Dihapus.
+/**
+ * Deskripsi Fungsi:
+ * Toggle koleksi buku (bookmark). Jika sudah disimpan akan dihapus, jika belum akan ditambahkan.
+ */
 exports.toggleKoleksi = async (req, res) => {
     const { bukuID } = req.body;
     const userID = req.user.id;
 
     try {
-        // Cek apakah user sudah menyimpan buku ini?
         const [cek] = await db.query("SELECT * FROM koleksipribadi WHERE UserID = ? AND BukuID = ?", [userID, bukuID]);
 
         if (cek.length > 0) {
-            // Jika sudah ada -> Hapus (Unsave)
             await db.query("DELETE FROM koleksipribadi WHERE KoleksiID = ?", [cek[0].KoleksiID]);
             return res.json({ message: "Buku dihapus dari koleksi", isSaved: false });
         } else {
-            // Jika belum ada -> Tambah (Save)
             await db.query("INSERT INTO koleksipribadi (UserID, BukuID) VALUES (?, ?)", [userID, bukuID]);
             return res.json({ message: "Buku disimpan ke koleksi", isSaved: true });
         }
@@ -26,7 +29,6 @@ exports.toggleKoleksi = async (req, res) => {
     }
 };
 
-// 2. Ambil Daftar Koleksi Saya
 exports.getKoleksi = async (req, res) => {
     const userID = req.user.id;
     try {
@@ -45,15 +47,16 @@ exports.getKoleksi = async (req, res) => {
     }
 };
 
-// --- FITUR ULASAN BUKU ---
-
-// 3. Kirim Ulasan
+/**
+ * Deskripsi Fungsi:
+ * Menambahkan ulasan buku dengan validasi bahwa user harus sudah pernah meminjam 
+ * dan mengembalikan buku tersebut. Mencegah duplikasi ulasan.
+ */
 exports.addUlasan = async (req, res) => {
     const { bukuID, rating, ulasan } = req.body;
     const userID = req.user.id;
 
     try {
-        // Validasi: User WAJIB pernah meminjam & sudah mengembalikan buku tersebut
         const [history] = await db.query(`
             SELECT * FROM peminjaman 
             WHERE UserID = ? AND BukuID = ? AND StatusPeminjaman = 'Dikembalikan'
@@ -63,13 +66,11 @@ exports.addUlasan = async (req, res) => {
             return res.status(403).json({ message: "Eits! Kamu harus baca (pinjam & kembalikan) buku ini dulu sebelum memberi ulasan." });
         }
 
-        // Cek apakah user sudah pernah mengulas buku ini sebelumnya? (Opsional, biar gak spam)
         const [existingReview] = await db.query("SELECT * FROM ulasanbuku WHERE UserID = ? AND BukuID = ?", [userID, bukuID]);
         if (existingReview.length > 0) {
             return res.status(400).json({ message: "Kamu sudah memberikan ulasan untuk buku ini." });
         }
 
-        // Simpan Ulasan
         await db.query(
             "INSERT INTO ulasanbuku (UserID, BukuID, Rating, Ulasan) VALUES (?, ?, ?, ?)",
             [userID, bukuID, rating, ulasan]
@@ -81,7 +82,6 @@ exports.addUlasan = async (req, res) => {
     }
 };
 
-// 4. Ambil Semua Ulasan di Suatu Buku (Untuk ditampilkan di Detail Buku nanti)
 exports.getUlasanByBuku = async (req, res) => {
     const { bukuID } = req.params;
     try {

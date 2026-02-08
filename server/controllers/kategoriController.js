@@ -1,3 +1,8 @@
+/**
+ * Deskripsi File:
+ * File ini bertanggung jawab untuk mengelola CRUD (Create, Read, Update, Delete) kategori buku.
+ */
+
 const db = require('../config/db');
 
 exports.getAllKategori = async (req, res) => {

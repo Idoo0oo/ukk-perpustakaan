@@ -1,5 +1,12 @@
+/**
+ * Deskripsi File:
+ * File entry point utama untuk server Express. Menginisialisasi middleware
+ * dan menghubungkan semua route ke aplikasi.
+ */
+
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
@@ -10,13 +17,11 @@ const ulasanRoutes = require('./routes/ulasanRoutes');
 const laporanRoutes = require('./routes/laporanRoutes');
 const userRoutes = require('./routes/userRoutes');
 const fiturRoutes = require('./routes/fiturRoutes');
-const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Hubungkan Rute
 app.use('/api/auth', authRoutes);
 app.use('/api/buku', bukuRoutes);
 app.use('/api/peminjaman', peminjamanRoutes);

@@ -1,3 +1,9 @@
+/**
+ * Deskripsi File:
+ * File route untuk endpoints kategori buku. GET endpoint tersedia publik,
+ * CUD endpoints hanya untuk admin.
+ */
+
 const express = require('express');
 const router = express.Router();
 const kategoriController = require('../controllers/kategoriController');

@@ -1,6 +1,10 @@
+/**
+ * Deskripsi File:
+ * File ini bertanggung jawab untuk mengelola ulasan (review) buku oleh pengguna.
+ */
+
 const db = require('../config/db');
 
-// Tambah Ulasan
 exports.addUlasan = async (req, res) => {
     const { bukuID, ulasan, rating } = req.body;
     const userID = req.user.id;
@@ -16,7 +20,6 @@ exports.addUlasan = async (req, res) => {
     }
 };
 
-// Ambil Ulasan berdasarkan Buku
 exports.getUlasanByBuku = async (req, res) => {
     const { bukuID } = req.params;
     try {
@@ -24,7 +27,7 @@ exports.getUlasanByBuku = async (req, res) => {
             `SELECT u.*, us.Username 
              FROM ulasanbuku u 
              JOIN user us ON u.UserID = us.UserID 
-             WHERE u.BukuID = ?`, 
+             WHERE u.BukuID = ?`,
             [bukuID]
         );
         res.json(rows);
