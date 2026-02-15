@@ -39,7 +39,7 @@ const Login = () => {
 
             const userRole = res.data.role;
 
-            if (userRole === 'admin' || userRole === 'petugas') {
+            if (userRole === 'admin') {
                 navigate('/admin');
             } else if (userRole === 'peminjam') {
                 navigate('/peminjam');

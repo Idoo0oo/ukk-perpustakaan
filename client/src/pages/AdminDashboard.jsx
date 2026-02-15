@@ -167,7 +167,7 @@ const DashboardHome = () => {
             <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 rounded-3xl p-8 md:p-10 text-white shadow-2xl shadow-indigo-200">
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
-                        <h1 className="text-3xl font-bold mb-2 tracking-tight">Halo, Administrator! 👋</h1>
+                        <h1 className="text-3xl font-bold mb-2 tracking-tight">Halo, Administrator</h1>
                         <p className="text-indigo-100 text-lg max-w-xl leading-relaxed">
                             {stats.menungguValidasi > 0 ? (
                                 <>Ada <span className="font-bold bg-white/20 px-2 py-0.5 rounded text-white">{stats.menungguValidasi} permintaan</span> yang membutuhkan persetujuanmu.</>

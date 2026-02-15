@@ -1,7 +1,7 @@
 /**
  * Deskripsi File:
  * Route untuk manajemen User (Peminjam).
- * Hanya bisa diakses oleh Admin/Petugas.
+ * Hanya bisa diakses oleh Admin.
  * Controller: userController.js
  */
 

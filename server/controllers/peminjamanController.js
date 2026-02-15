@@ -132,7 +132,7 @@ exports.kembalikanBuku = async (req, res) => {
 // 6. Get All (Untuk User biasa lihat pinjaman sendiri, atau base query)
 exports.getAllPeminjaman = async (req, res) => {
     try {
-        const userID = (req.user.role === 'admin' || req.user.role === 'petugas') ? null : req.user.id;
+        const userID = (req.user.role === 'admin') ? null : req.user.id;
         const data = await PeminjamanModel.findAll(userID);
         res.json(data);
     } catch (error) {

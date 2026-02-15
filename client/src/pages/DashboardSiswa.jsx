@@ -144,8 +144,7 @@ const DashboardSiswa = () => {
             <header className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-12 px-6 mb-8 shadow-xl shadow-indigo-200">
                 <div className="max-w-6xl mx-auto">
                     <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2">
-                        Halo, {namaUser}! 
-                        <PartyPopper className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
+                        Halo, {namaUser}
                     </h1>
                     <p className="text-violet-100 text-lg">Temukan buku favoritmu dan mulai membaca hari ini.</p>
                 </div>

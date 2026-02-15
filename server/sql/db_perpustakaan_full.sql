@@ -18,7 +18,7 @@ CREATE TABLE user (
     Email VARCHAR(255) NOT NULL UNIQUE,
     NamaLengkap VARCHAR(255) NOT NULL,
     Alamat TEXT,
-    Role ENUM('admin', 'petugas', 'peminjam') DEFAULT 'peminjam',
+    Role ENUM('admin', 'peminjam') DEFAULT 'peminjam',
     Status ENUM('Menunggu', 'Aktif', 'Ditolak') DEFAULT 'Menunggu', -- Penting: Default Menunggu untuk Peminjam
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -116,7 +116,6 @@ INSERT INTO kategoribuku (NamaKategori) VALUES
 INSERT INTO user (Username, Password, Email, NamaLengkap, Alamat, Role, Status) 
 VALUES 
 ('admin', '$2b$10$YourGeneratedHashHere', 'admin@sekolah.sch.id', 'Administrator Perpustakaan', 'Ruang IT', 'admin', 'Aktif'),
-('petugas', '$2b$10$YourGeneratedHashHere', 'petugas@sekolah.sch.id', 'Petugas Perpus', 'Meja Sirkulasi', 'petugas', 'Aktif');
 
 -- Catatan untuk Pengguna (Git Clone):
 -- Password admin di atas hanyalah contoh hash placeholder.

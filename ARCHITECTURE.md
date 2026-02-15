@@ -166,7 +166,7 @@ ukk-perpustakaan/
 
 | Role | Access |
 |------|--------|
-| **Admin/Petugas** | Semua endpoint admin (approval peminjaman, CRUD buku, laporan, validasi user) |
+| **Admin** | Semua endpoint admin (approval peminjaman, CRUD buku, laporan, validasi user) |
 | **Peminjam** | Katalog buku, ajukan peminjaman, koleksi pribadi, ulasan |
 | **Public** | Landing page, login, register |
 
@@ -241,7 +241,7 @@ user
 ├── Email
 ├── NamaLengkap
 ├── Alamat
-├── Role ('admin', 'petugas', 'peminjam')
+├── Role ('admin', 'peminjam')
 └── Status ('Menunggu', 'Aktif')
 
 -- Books

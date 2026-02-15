@@ -125,7 +125,7 @@ const Laporan = () => {
                 
                 {/* 1. KOP SURAT */}
                 <div className="mb-8 text-center border-b-2 border-gray-800 pb-6">
-                    <h1 className="text-3xl font-bold uppercase tracking-wide text-gray-900 mb-2">Perpustakaan Digital Sekolah</h1>
+                    <h1 className="text-3xl font-bold tracking-wide text-gray-900 mb-2">PerpusDigital.</h1>
                     <p className="text-gray-600 text-sm">Jl. Pendidikan No. 1, Kota Belajar, Indonesia | Telp: (021) 123-4567</p>
                     <p className="text-gray-600 text-sm">Email: info@perpussekolah.sch.id | Website: www.perpussekolah.sch.id</p>
                 </div>

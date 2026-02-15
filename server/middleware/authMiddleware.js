@@ -22,8 +22,8 @@ exports.verifyToken = (req, res, next) => {
 };
 
 exports.isAdmin = (req, res, next) => {
-    if (req.user.role !== 'admin' && req.user.role !== 'petugas') {
-        return res.status(403).json({ message: "Akses khusus Admin/Petugas!" });
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Akses khusus Admin!" });
     }
     next();
 };

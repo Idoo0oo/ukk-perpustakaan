@@ -55,7 +55,7 @@ const DataUlasan = () => {
         if (result.isConfirmed) {
             try {
                 await axios.delete(`http://localhost:5000/api/ulasan/admin/:id`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    // headers: { Authorization: `Bearer ${token}` }
                 });
                 Swal.fire('Terhapus', 'Ulasan berhasil dihapus.', 'success');
                 fetchReviews();
@@ -68,7 +68,7 @@ const DataUlasan = () => {
     // Helper: Render Bintang
     const renderStars = (rating) => {
         return [...Array(5)].map((_, i) => (
-            <Star key={i} size={14} className={i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"} />
+            <Star key={i} size={14} className={i < rating ? "text-red-400 fill-red-400" : "text-gray-300"} />
         ));
     };
 
@@ -119,7 +119,7 @@ const DataUlasan = () => {
                                         )}
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-gray-800 text-sm line-clamp-2">{item.Judul}</h4>
+                                        <h4 className="font-bold text-gray-800 text-sm line-clamp-2">{item.judul}</h4>
                                         <div className="flex items-center gap-1 mt-1">
                                             {renderStars(item.Rating)}
                                             <span className="text-xs text-gray-500 ml-1">({item.Rating}/5)</span>
