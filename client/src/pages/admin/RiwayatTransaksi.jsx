@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
-    History, Search, Filter, ArrowDownUp, 
-    CalendarCheck, AlertCircle, CheckCircle2, User, BookOpen 
+    History, Search, User, BookOpen 
 } from 'lucide-react';
 
 const RiwayatTransaksi = () => {
@@ -35,7 +34,6 @@ const RiwayatTransaksi = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Kita gunakan endpoint utama karena di controller sudah ada logika ambil Denda
                 const res = await axios.get('http://localhost:5000/api/peminjaman', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -56,7 +54,6 @@ const RiwayatTransaksi = () => {
 
         // 1. Filter Status
         if (filterStatus === 'Denda') {
-            // Tampilkan hanya yang punya denda > 0
             result = result.filter(item => item.Denda > 0);
         } else if (filterStatus === 'Dipinjam') {
             result = result.filter(item => item.StatusPeminjaman === 'Dipinjam');
@@ -122,7 +119,7 @@ const RiwayatTransaksi = () => {
                                 <th className="p-4">Peminjam</th>
                                 <th className="p-4">Buku</th>
                                 <th className="p-4">Tgl Pinjam</th>
-                                <th className="p-4">Tgl Kembali</th>
+                                <th className="p-4">Tgl Kembali / Jatuh Tempo</th>
                                 <th className="p-4 text-center">Status</th>
                                 <th className="p-4 text-right">Denda</th>
                             </tr>
@@ -159,14 +156,12 @@ const RiwayatTransaksi = () => {
                                             </div>
                                         </td>
 
-                                        {/* Tanggal */}
+                                        {/* Tanggal Pinjam */}
                                         <td className="p-4 text-sm text-gray-500">{formatDate(item.TanggalPeminjaman)}</td>
-                                        <td className="p-4 text-sm text-gray-500">
-                                            {item.StatusPeminjaman === 'Dipinjam' || item.StatusPeminjaman === 'Menunggu' ? (
-                                                <span className="text-indigo-400 font-medium">--</span>
-                                            ) : (
-                                                formatDate(item.TanggalPengembalian)
-                                            )}
+                                        
+                                        {/* Tanggal Kembali (Selalu muncul) */}
+                                        <td className="p-4 text-sm text-gray-500 font-semibold">
+                                            {formatDate(item.TanggalPengembalian)}
                                         </td>
 
                                         {/* Status Badge */}
@@ -181,7 +176,7 @@ const RiwayatTransaksi = () => {
                                             </span>
                                         </td>
 
-                                        {/* Kolom Denda (HIGHLIGHT UTAMA) */}
+                                        {/* Kolom Denda */}
                                         <td className="p-4 text-right">
                                             {item.Denda > 0 ? (
                                                 <div className="flex flex-col items-end">

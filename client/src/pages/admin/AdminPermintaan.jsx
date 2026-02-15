@@ -92,7 +92,7 @@ const AdminPermintaan = () => {
                 // Tampilkan Loading
                 Swal.showLoading();
 
-                // Panggil API Backend (Pastikan URL-nya sesuai route backend kamu, misal /kembali atau /return)
+                // Panggil API Backend
                 const res = await axios.put(`http://localhost:5000/api/peminjaman/${id}/return`, {}, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -102,7 +102,6 @@ const AdminPermintaan = () => {
 
                 // Logika Alert Berdasarkan Denda
                 if (denda > 0) {
-                    // JIKA ADA DENDA (TELAT)
                     Swal.fire({
                         title: 'TERLAMBAT!',
                         html: `
@@ -116,7 +115,6 @@ const AdminPermintaan = () => {
                         confirmButtonText: 'Oke, Mengerti'
                     });
                 } else {
-                    // JIKA TEPAT WAKTU
                     Swal.fire('Berhasil', 'Buku dikembalikan tepat waktu. Tidak ada denda.', 'success');
                 }
 
@@ -219,7 +217,7 @@ const EmptyState = ({ text }) => (
     </div>
 );
 
-// Sub-Component untuk Tabel (Reusable)
+// Sub-Component untuk Tabel (Update: Menambahkan kolom Tgl Kembali)
 const TableRequests = ({ data, type, onApprove, onReject, formatDate }) => (
     <div className="overflow-x-auto">
         <table className="w-full text-left">
@@ -228,7 +226,9 @@ const TableRequests = ({ data, type, onApprove, onReject, formatDate }) => (
                     <th className="p-4">No</th>
                     <th className="p-4">Buku</th>
                     <th className="p-4">Siswa</th>
-                    <th className="p-4">{type === 'borrow' ? 'Tgl Ajuan' : 'Batas Kembali'}</th>
+                    <th className="p-4">Tgl Pinjam</th>
+                    {/* Header dinamis untuk tanggal kembali */}
+                    <th className="p-4">{type === 'borrow' ? 'Rencana Kembali' : 'Batas Kembali'}</th>
                     <th className="p-4 text-center">Aksi</th>
                 </tr>
             </thead>
@@ -245,10 +245,18 @@ const TableRequests = ({ data, type, onApprove, onReject, formatDate }) => (
                                 <span className="text-sm">{item.NamaPeminjam}</span>
                             </div>
                         </td>
+                        {/* Kolom Tanggal Pinjam */}
                         <td className="p-4 text-sm text-gray-600">
                             <div className="flex items-center gap-2">
-                                <CalendarDays size={14} />
-                                {formatDate(type === 'borrow' ? item.TanggalPeminjaman : item.TanggalPengembalian)}
+                                <CalendarDays size={14} className="text-gray-400"/>
+                                {formatDate(item.TanggalPeminjaman)}
+                            </div>
+                        </td>
+                        {/* Kolom Tanggal Kembali (Baru) */}
+                        <td className="p-4 text-sm text-gray-600">
+                            <div className="flex items-center gap-2">
+                                <CalendarDays size={14} className="text-orange-400"/>
+                                {formatDate(item.TanggalPengembalian)}
                             </div>
                         </td>
                         <td className="p-4 text-center">
@@ -259,7 +267,7 @@ const TableRequests = ({ data, type, onApprove, onReject, formatDate }) => (
                                 </div>
                             ) : (
                                 <button onClick={() => onApprove(item.PeminjamanID, item.JudulBuku, item.NamaPeminjam)} className="btn btn-sm bg-blue-500 hover:bg-blue-600 text-white border-none w-full md:w-auto">
-                                    <CheckCircle size={14} className="mr-1"/> Konfirmasi Diterima
+                                    <CheckCircle size={14} className="mr-1"/> Konfirmasi
                                 </button>
                             )}
                         </td>
