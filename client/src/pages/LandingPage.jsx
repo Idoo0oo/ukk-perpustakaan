@@ -297,7 +297,7 @@ const LandingPage = () => {
                     </div>
 
                     <div className="flex flex-col md:flex-row justify-between items-center mt-16 text-slate-400 text-sm font-medium">
-                        <p>&copy; 2026 PerpusDigital SMKN 4 Tangerang.</p>
+                        <p>&copy; 2026 PerpusDigital.</p>
                         <div className="flex gap-8 mt-4 md:mt-0">
                             <a href="#" className="hover:text-violet-600 transition">Kebijakan Privasi</a>
                             <a href="#" className="hover:text-violet-600 transition">Syarat & Ketentuan</a>
