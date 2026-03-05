@@ -62,7 +62,7 @@ const AdminDashboard = () => {
                     <div className="bg-gradient-to-br from-violet-600 to-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-violet-500/30">
                         <BookOpen size={24} fill="currentColor" className="opacity-90" />
                     </div>
-                    <span className="text-xl font-extrabold tracking-tight text-slate-900 hidden sm:block">
+                    <span className="text-xl font-bold tracking-tight text-slate-900">
                         Perpus<span className="text-violet-600">Digital</span>.
                     </span>
                     
@@ -80,7 +80,7 @@ const AdminDashboard = () => {
                 <div className="flex items-center gap-4">
                     <div className="text-right hidden sm:block">
                         <p className="text-sm font-bold text-gray-800">Administrator</p>
-                        <p className="text-xs text-gray-500 font-medium">admin@sekolah.com</p>
+                        <p className="text-xs text-gray-500 font-medium">admin@gmail.com</p>
                     </div>
                     <div className="avatar placeholder cursor-pointer hover:ring-2 hover:ring-violet-300 transition-all rounded-full">
                         <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-full w-11 h-11 flex items-center justify-center shadow-md">
