@@ -57,79 +57,98 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-100 via-white to-indigo-100 p-4">
+        <div className="min-h-screen bg-[#FFFBEB] font-mono text-black selection:bg-[#FFD600] selection:text-black flex items-center justify-center p-4 relative overflow-hidden">
+
+            {/* GRID BACKGROUND */}
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-20" style={{
+                backgroundImage: `linear-gradient(#000 1.5px, transparent 1.5px), linear-gradient(90deg, #000 1.5px, transparent 1.5px)`,
+                backgroundSize: '40px 40px'
+            }}></div>
+
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="card w-full max-w-md bg-white shadow-2xl border border-white/50 rounded-3xl"
+                /* PENTING: overflow-hidden dihapus agar badge bisa keluar border */
+                className="relative z-10 w-full max-sm:max-w-[320px] max-w-sm bg-white brutal-border-heavy brutal-shadow p-6 md:p-8"
             >
-                <div className="card-body p-8">
-                    <div className="flex flex-col items-center mb-8">
-                        <div className="flex items-center gap-0 mb-6 scale-110">
-                            <div className="flex items-center justify-center bg-transparent drop-shadow-md w-14 h-14">
-                                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain scale-150 drop-shadow-[0_4px_12px_rgba(124,58,237,0.3)]" />
-                            </div>
-                            <span className="text-2xl font-bold tracking-tight text-slate-900">
-                                Sastra<span className="text-violet-600 italic">.in</span>
+                {/* Bumper Badge - Dipaksa keluar dengan nilai negatif & shadow tebal */}
+                <div className="absolute -top-5 -left-5 bg-[#AEEA00] brutal-border px-3 py-1 text-black font-black text-[10px] uppercase -rotate-6 z-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] whitespace-nowrap">
+                    AYO BACA BUKU
+                </div>
+                <div className="flex flex-col items-center mb-6">
+                    <Link to="/" className="flex items-center gap-0 mb-4 group scale-90">
+                        <img
+                            src="/logo.png"
+                            alt="Logo"
+                            className="w-14 h-14 object-contain group-hover:rotate-12 transition-transform"
+                        />
+                        <span className="text-2xl font-black uppercase tracking-tighter -ml-2">
+                            Sastra<span className="bg-[#FFD600] px-1 border-2 border-black">.in</span>
+                        </span>
+                    </Link>
+
+                    <h2 className="text-2xl font-black text-black uppercase tracking-tight text-center">Selamat Datang</h2>
+                    <p className="text-black/60 font-bold uppercase text-[10px] mt-1">Masuk untuk mengakses perpustakaan</p>
+                </div>
+
+                <form onSubmit={handleLogin} className="space-y-4">
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-black uppercase block">Username</label>
+                        <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center z-10 pointer-events-none text-black">
+                                <User size={16} strokeWidth={3} />
                             </span>
+                            <input
+                                type="text"
+                                className="w-full pl-10 pr-4 py-3 bg-white brutal-border font-bold text-sm text-black focus:outline-none focus:bg-[#AEEA00] transition-colors placeholder:text-black/30"
+                                placeholder="USERNAME"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                            />
                         </div>
-
-                        <h2 className="text-2xl font-bold text-gray-800">Selamat Datang Kembali</h2>
-                        <p className="text-gray-500 text-sm">Masuk untuk mengakses perpustakaan</p>
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <div className="form-control">
-                            <label className="label text-xs font-bold text-gray-600 uppercase">Username</label>
-                            <div className="relative">
-                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center z-10 pointer-events-none text-gray-400">
-                                    <User size={18} />
-                                </span>
-                                <input
-                                    type="text"
-                                    className="input input-bordered w-full pl-10 focus:input-primary transition-all bg-gray-50 text-gray-900 rounded-xl"
-                                    placeholder="Masukkan username"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    required
-                                />
-                            </div>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-black uppercase block">Password</label>
+                        <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center z-10 pointer-events-none text-black">
+                                <Lock size={16} strokeWidth={3} />
+                            </span>
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className="w-full pl-10 pr-10 py-3 bg-white brutal-border font-bold text-sm text-black focus:outline-none focus:bg-[#FF4081] focus:text-white transition-colors placeholder:text-black/30 placeholder:focus:text-white/50"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center z-20 text-black hover:scale-110 transition-transform"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <EyeOff size={16} strokeWidth={3} /> : <Eye size={16} strokeWidth={3} />}
+                            </button>
                         </div>
-
-                        <div className="form-control">
-                            <label className="label text-xs font-bold text-gray-600 uppercase">Password</label>
-                            <div className="relative">
-                                <span className="absolute inset-y-0 left-0 pl-3 flex items-center z-10 pointer-events-none text-gray-400">
-                                    <Lock size={18} />
-                                </span>
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    className="input input-bordered w-full pl-10 pr-10 bg-gray-50 text-gray-900 focus:input-primary transition-all rounded-xl"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center z-20 text-gray-400 hover:text-primary"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <button type="submit" className="btn bg-violet-600 hover:bg-violet-700 text-white w-full mt-6 shadow-lg shadow-violet-200 border-none rounded-xl h-12 text-base">
-                            <LogIn size={20} className="mr-2" /> Masuk Sekarang
-                        </button>
-                    </form>
-
-                    <div className="mt-8 text-center text-sm text-gray-600">
-                        Belum punya akun?
-                        <Link to="/register" className="text-violet-600 font-bold hover:underline ml-1">Daftar di sini</Link>
                     </div>
+
+                    <button
+                        type="submit"
+                        className="w-full bg-[#AEEA00] brutal-border-heavy brutal-shadow py-3 text-lg font-black uppercase hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all flex items-center justify-center gap-2"
+                    >
+                        <LogIn size={20} strokeWidth={3} /> Masuk Sekarang
+                    </button>
+                </form>
+
+                <div className="mt-6 pt-4 border-t-2 border-black text-center">
+                    <p className="font-bold uppercase text-[10px]">
+                        Belum punya akun? <br />
+                        <Link to="/register" className="bg-[#FFD600] px-2 brutal-border mt-1 inline-block hover:bg-black hover:text-white transition-colors">
+                            Daftar di sini
+                        </Link>
+                    </p>
                 </div>
             </motion.div>
         </div>
