@@ -66,12 +66,12 @@ const Login = () => {
             >
                 <div className="card-body p-8">
                     <div className="flex flex-col items-center mb-8">
-                        <div className="flex items-center gap-2.5 mb-6 scale-110">
-                            <div className="bg-gradient-to-br from-violet-600 to-indigo-600 p-2.5 rounded-xl text-white shadow-xl shadow-violet-500/20">
-                                <BookOpen size={28} fill="currentColor" className="opacity-90" />
+                        <div className="flex items-center gap-0 mb-6 scale-110">
+                            <div className="flex items-center justify-center bg-transparent drop-shadow-md w-14 h-14">
+                                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain scale-150 drop-shadow-[0_4px_12px_rgba(124,58,237,0.3)]" />
                             </div>
                             <span className="text-2xl font-bold tracking-tight text-slate-900">
-                                Perpus<span className="text-violet-600">Digital</span>.
+                                Sastra<span className="text-violet-600 italic">.in</span>
                             </span>
                         </div>
 

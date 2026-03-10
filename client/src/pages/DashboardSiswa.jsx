@@ -132,12 +132,12 @@ const DashboardSiswa = () => {
             
             {/* --- HEADER ATAS (Style Baru, Mirip Admin) --- */}
             <header className="h-20 bg-white/60 backdrop-blur-md border-b border-gray-200/50 flex items-center justify-between px-8 shadow-sm z-30 sticky top-0">
-                <div className="flex items-center gap-3">
-                    <div className="bg-gradient-to-br from-violet-600 to-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-violet-500/30">
-                        <BookOpen size={24} fill="currentColor" className="opacity-90" />
-                    </div>
+                <div className="flex items-center gap- 0">
+                    <div className="flex items-center justify-center bg-transparent drop-shadow-md w-14 h-14">
+                                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain scale-150 drop-shadow-[0_4px_12px_rgba(124,58,237,0.3)]" />
+                            </div>
                     <span className="text-xl font-bold tracking-tight text-slate-900 hidden sm:block">
-                        Perpus<span className="text-violet-600">Digital</span>.
+                        Sastra<span className="text-violet-600 italic">.in</span>
                     </span>
                     
                     {/* Badge Siswa Panel */}

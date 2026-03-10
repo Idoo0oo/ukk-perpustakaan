@@ -60,11 +60,11 @@ const Register = () => {
                 </div>
 
                 <div className="md:w-7/12 p-8 md:p-12">
-                    <div className="flex items-center gap-2 mb-6 justify-center md:justify-start">
-                        <div className="bg-gradient-to-br from-violet-600 to-indigo-600 p-1.5 rounded-lg text-white shadow-md">
-                            <BookOpen size={20} fill="currentColor" />
+                    <div className="flex items-center gap-0 mb-6 justify-center md:justify-start">
+                        <div className="flex items-center justify-center bg-transparent drop-shadow-md w-14 h-14">
+                            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain scale-150 drop-shadow-[0_4px_12px_rgba(124,58,237,0.3)]" />
                         </div>
-                        <span className="text-lg font-bold text-slate-900">Perpus<span className="text-violet-600">Digital</span>.</span>
+                        <span className="text-2xl font-bold tracking-tight text-slate-900">Sastra<span className="text-violet-600 italic">.in</span></span>
                     </div>
 
                     <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center md:text-left">Buat Akun Baru</h2>
