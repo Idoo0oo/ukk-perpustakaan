@@ -23,6 +23,37 @@
 .animation-delay-2000 {
     animation-delay: 2s;
 }
-.animate-bounce-slow {
-    animation: bounce 3s infinite;
+/* Neo-Brutalism Utilities */
+.brutal-shadow {
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+    transition: all 0.2s ease-in-out;
+}
+.brutal-shadow:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px rgba(0,0,0,1);
+}
+.brutal-shadow:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+}
+
+.brutal-shadow-lg {
+    box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
+    transition: all 0.2s ease-in-out;
+}
+.brutal-shadow-lg:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 12px 12px 0px 0px rgba(0,0,0,1);
+}
+.brutal-shadow-lg:active {
+    transform: translate(4px, 4px);
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+}
+
+.brutal-border {
+    border: 3px solid #000;
+}
+
+.brutal-border-heavy {
+    border: 4px solid #000;
 }

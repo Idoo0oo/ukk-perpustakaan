@@ -1,221 +1,371 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     BookOpen, Search, ArrowRight, Star,
     Library, Zap, Shield, Heart, Menu, X,
-    TrendingUp, Award, Quote, CheckCircle2
+    TrendingUp, Award, Quote, CheckCircle2,
+    Users, BookMarked, MessageSquare, HelpCircle,
+    ChevronDown, PlayCircle, Globe, Smartphone, Phone, Mail, MapPin, Instagram
 } from 'lucide-react';
 import usePageTitle from '../hooks/usePageTitle';
 
 // --- DATA ---
 const KATEGORI = [
-    { title: "Teknologi & AI", count: "120+ Buku", color: "bg-blue-50 text-blue-600 border-blue-100", icon: <Zap /> },
-    { title: "Fiksi Best Seller", count: "300+ Buku", color: "bg-pink-50 text-pink-600 border-pink-100", icon: <Heart /> },
-    { title: "Sains Modern", count: "80+ Buku", color: "bg-emerald-50 text-emerald-600 border-emerald-100", icon: <Award /> },
-    { title: "Sejarah Dunia", count: "50+ Buku", color: "bg-orange-50 text-orange-600 border-orange-100", icon: <Library /> },
+    { title: "Teknologi & AI", count: "120+ Buku", color: "bg-[#00E5FF]", icon: <Zap className="w-8 h-8" /> },
+    { title: "Fiksi Best Seller", count: "300+ Buku", color: "bg-[#FF4081]", icon: <Heart className="w-8 h-8" /> },
+    { title: "Sains Modern", count: "80+ Buku", color: "bg-[#AEEA00]", icon: <Award className="w-8 h-8" /> },
+    { title: "Sejarah Dunia", count: "50+ Buku", color: "bg-[#FFD600]", icon: <Library className="w-8 h-8" /> },
+];
+
+const STATS = [
+    { label: "Koleksi Buku", value: "15,000+", color: "bg-[#FFD600]" },
+    { label: "Peminjam Aktif", value: "8,500+", color: "bg-[#AEEA00]" },
+    { label: "Peminjaman/Bln", value: "12,000+", color: "bg-[#00E5FF]" },
+    { label: "Rating Apps", value: "4.9/5.0", color: "bg-[#FF4081]" },
+];
+
+const FEATURES = [
+    { title: "Akses 24/7", desc: "Baca kapan saja dan di mana saja tanpa batasan waktu.", icon: <Globe />, color: "bg-[#00E5FF]" },
+    { title: "Multi Platform", desc: "Tersedia di Web, Android, dan iOS untuk kenyamananmu.", icon: <Smartphone />, color: "bg-[#FFD600]" },
+    { title: "Koleksi Premium", desc: "Ribuan buku eksklusif dari penerbit ternama dunia.", icon: <Star />, color: "bg-[#FF4081]" },
 ];
 
 const BUKU_POPULER = [
-    { title: "Atomic Habits", author: "James Clear", rating: "4.9", img: "https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=600&q=80" },
-    { title: "Filosofi Teras", author: "Henry Manampiring", rating: "4.8", img: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80" },
-    { title: "Laskar Pelangi", author: "Andrea Hirata", rating: "4.9", img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&q=80" },
-    { title: "Dunia Sophie", author: "Jostein Gaarder", rating: "4.7", img: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=600&q=80" },
-    { title: "Sapiens", author: "Yuval Noah Harari", rating: "4.8", img: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=600&q=80" },
+    { title: "Atomic Habits", author: "James Clear", rating: "4.9", img: "https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=600&q=80", color: "bg-[#FFD600]" },
+    { title: "Filosofi Teras", author: "Henry Manampiring", rating: "4.8", img: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80", color: "bg-[#AEEA00]" },
+    { title: "Laskar Pelangi", author: "Andrea Hirata", rating: "4.9", img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&q=80", color: "bg-[#00E5FF]" },
+    { title: "Dunia Sophie", author: "Jostein Gaarder", rating: "4.7", img: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=600&q=80", color: "bg-[#FF4081]" },
+];
+
+const HOW_IT_WORKS = [
+    { step: "01", title: "Daftar Akun", desc: "Buat akun dalam hitungan detik dengan EMAIL kamu." },
+    { step: "02", title: "Pilih Buku", desc: "Cari buku favoritmu dari ribuan koleksi kami." },
+    { step: "03", title: "Pinjam & Baca", desc: "Klik pinjam dan mulai membaca sekarang!" },
+];
+
+const TESTIMONIALS = [
+    { name: "Andi Saputra", role: "Siswa SMA", text: "Perpustakaan ini ngebantu banget buat ngerjain tugas sekolah. Koleksinya lengkap!", avatar: "https://i.pravatar.cc/150?u=andi" },
+    { name: "Siti Aminah", role: "Mahasiswa", text: "UI-nya keren banget, beda dari perpus digital lain. Smooth dan gampang dipake.", avatar: "https://i.pravatar.cc/150?u=siti" },
+    { name: "Budi Santoso", role: "Guru", text: "sangat bagus, banyak pilihan buku dan bisa dipinjam oleh siapapun.", avatar: "https://i.pravatar.cc/150?u=budi" },
+];
+
+const FAQ = [
+    { q: "Apakah layanan ini gratis?", a: "Ya, 100% gratis untuk seluruh peminjam yang memiliki akun sastra.in valid." },
+    { q: "Berapa lama durasi peminjaman?", a: "Peminjaman buku digital berlaku selama 14 hari dan dapat diperpanjang." },
+    { q: "Apakah ada denda?", a: "Ya, Adanya denda tergantung pada durasi pengembalian buku." },
 ];
 
 const LandingPage = () => {
-    usePageTitle('Selamat Datang');
+    usePageTitle('Selamat Datang di Sastra.in');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [openFaq, setOpenFaq] = useState(null);
 
-    // Efek Navbar berubah saat di-scroll
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20);
+        const handleScroll = () => setScrolled(window.scrollY > 50);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900 overflow-x-hidden selection:bg-violet-200 selection:text-violet-900">
+        <div className="min-h-screen bg-[#FFFBEB] font-mono text-black selection:bg-[#FFD600] selection:text-black">
 
-            {/* BACKGROUND PATTERN (DOT GRID) - Memberikan tekstur modern */}
-            <div className="fixed inset-0 z-0 pointer-events-none" style={{
-                backgroundImage: 'radial-gradient(#E2E8F0 1px, transparent 1px)',
-                backgroundSize: '24px 24px'
+            {/* GRID BACKGROUND */}
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-20" style={{
+                backgroundImage: `linear-gradient(#000 1.5px, transparent 1.5px), linear-gradient(90deg, #000 1.5px, transparent 1.5px)`,
+                backgroundSize: '40px 40px'
             }}></div>
 
-            {/* --- FLOATING NAVBAR (ULTRA MODERN) --- */}
-            <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4">
-                <nav className={`w-full max-w-7xl transition-all duration-300 ${scrolled
-                    ? "bg-white/80 backdrop-blur-xl shadow-lg shadow-slate-200/50 rounded-2xl border border-white/50 py-3 px-6"
-                    : "bg-transparent py-5 px-6"
+            {/* --- NAVBAR --- */}
+            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-2 px-6 md:px-12' : 'py-4 px-6 md:px-12'
+                }`}>
+                <div className={`max-w-7xl mx-auto flex justify-between items-center bg-white brutal-border-heavy brutal-shadow p-2 md:p-3 transition-all duration-300 ${scrolled ? 'rounded-2xl' : 'rounded-none'
                     }`}>
-                    <div className="flex justify-between items-center">
-                        {/* Logo */}
-                        <div className="flex items-center gap-0">
-                            <div className="flex items-center justify-center bg-transparent drop-shadow-md w-14 h-14">
-                                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain scale-150 drop-shadow-[0_4px_12px_rgba(124,58,237,0.3)]" />
-                            </div>
-                            <span className="text-2xl font-bold tracking-tight text-slate-900">
-                                Sastra<span className="text-violet-600 italic">.in</span>
-                            </span>
-                        </div>
-
-                        {/* Auth Buttons */}
-                        <div className="hidden md:flex items-center gap-3">
-                            <Link to="/login" className="text-sm font-bold text-slate-700 hover:text-violet-600 px-4 py-2 transition">
-                                Masuk
-                            </Link>
-                            <Link to="/register" className="group relative px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-xl shadow-slate-900/10 overflow-hidden hover:scale-105 transition-all duration-300">
-                                <span className="relative z-10">Daftar Gratis</span>
-                                <div className="absolute inset-0 h-full w-full scale-0 rounded-xl transition-all duration-300 group-hover:scale-100 group-hover:bg-violet-600/100 bg-slate-900"></div>
-                            </Link>
-                        </div>
-
-                        {/* Mobile Toggle */}
-                        <button className="md:hidden p-2 text-slate-600 bg-slate-100 rounded-lg" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-                        </button>
+                    <div className="flex items-center gap-0">
+                        <img src="/logo.png" alt="Logo" className="w-14 h-14 object-contain hover:rotate-12 transition-transform" />
+                        <span className="text-2xl font-black uppercase tracking-tighter -ml-2">Sastra<span className="bg-[#FFD600] px-1">.in</span></span>
                     </div>
 
-                    {/* Mobile Menu Dropdown */}
+                    <div className="hidden md:flex items-center gap-8 font-bold uppercase text-sm">
+                        <a href="#features" className="hover:underline decoration-4 decoration-[#FFD600] underline-offset-4">Fitur</a>
+                        <a href="#kategori" className="hover:underline decoration-4 decoration-[#FF4081] underline-offset-4">Kategori</a>
+                        <a href="#faq" className="hover:underline decoration-4 decoration-[#00E5FF] underline-offset-4">Bantuan</a>
+                        <Link to="/login" className="hover:underline decoration-4 decoration-[#AEEA00] underline-offset-4">Masuk</Link>
+                        <Link to="/register" className="bg-[#FFD600] brutal-border brutal-shadow px-6 py-2 hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all">
+                            Daftar
+                        </Link>
+                    </div>
+
+                    <button className="md:hidden brutal-border p-2 bg-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                        {isMenuOpen ? <X /> : <Menu />}
+                    </button>
+                </div>
+
+                {/* Mobile Menu */}
+                <AnimatePresence>
                     {isMenuOpen && (
                         <motion.div
-                            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                            className="md:hidden mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2"
+                            initial={{ y: -20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -20, opacity: 0 }}
+                            className="md:hidden mt-4 bg-white brutal-border-heavy brutal-shadow p-6 flex flex-col gap-4 font-black uppercase"
                         >
-                            <Link to="/login" className="w-full py-3 text-center rounded-xl bg-slate-50 text-slate-700 font-semibold">Masuk Akun</Link>
-                            <Link to="/register" className="w-full py-3 text-center rounded-xl bg-violet-600 text-white font-semibold shadow-lg shadow-violet-200">Daftar Sekarang</Link>
+                            <a href="#features" onClick={() => setIsMenuOpen(false)}>Fitur</a>
+                            <a href="#kategori" onClick={() => setIsMenuOpen(false)}>Kategori</a>
+                            <Link to="/login">Masuk</Link>
+                            <Link to="/register" className="bg-[#FFD600] brutal-border-heavy p-4 text-center">Daftar Akun</Link>
                         </motion.div>
                     )}
-                </nav>
+                </AnimatePresence>
+            </nav>
+
+            {/* --- HERO SECTION --- */}
+            {/* 1. Di sini px-6 diubah menjadi px-8 md:px-16 lg:px-24 agar jarak pinggirnya lebih luas */}
+<header className="relative pt-32 pb-16 px-8 md:px-16 lg:px-24 z-10 overflow-hidden bg-[#FFFBEB]">
+    
+    {/* 2. max-w-7xl diubah menjadi max-w-6xl agar konten lebih merapat ke tengah */}
+    <div className="max-w-6xl mx-auto grid lg:grid-cols-[1.2fr_0.8fr] gap-12 lg:gap-20 items-center w-full">
+        
+        {/* === KONTEN KIRI === */}
+        <motion.div
+            initial={{ x: -30, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+        >
+            <div className="inline-block bg-[#00E5FF] brutal-border px-2 py-1 font-black text-[15px] uppercase mb-5 brutal-shadow">
+                Sastra.in aja yuk!
+            </div>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[0.98] mb-6 uppercase tracking-tighter text-black">
+                Akses <br />
+                <span className="bg-[#FF4081] text-white px-3 md:px-4 inline-block -rotate-1 brutal-border-heavy my-1 brutal-shadow">Ribuan Buku</span> <br />
+                di Sastra.in
+            </h1>
+            <p className="text-base md:text-lg font-bold text-black/80 mb-8 max-w-md leading-tight uppercase text-left">
+                Platform literasi paling berani. <br />
+                Baca sepuasnya, gratis selamanya.
+            </p>
+
+            <div className="flex flex-wrap gap-4 mb-10">
+                <Link to="/login" className="bg-[#AEEA00] brutal-border-heavy brutal-shadow px-5 py-4 text-lg md:text-xl font-black uppercase hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all inline-block text-black">
+                    Mulai Baca
+                </Link>
+                <a href="#features" className="bg-white brutal-border-heavy brutal-shadow px-5 py-4 flex items-center gap-2 font-black uppercase text-base md:text-lg hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-black">
+                    <PlayCircle size={24} /> Eksplor
+                </a>
             </div>
 
-            {/* --- HERO SECTION (PRECISION FIT) --- */}
-            {/* min-h-screen memastikan tinggi minimal 1 layar. flex items-center memastikan konten di tengah vertikal */}
-            <header className="relative min-h-screen flex items-center pt-28 pb-20 overflow-hidden z-10">
-
-                {/* Decorative Gradients */}
-                <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-violet-300/30 rounded-full blur-[100px] animate-pulse"></div>
-                <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-pink-300/30 rounded-full blur-[100px]"></div>
-
-                <div className="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-
-                    {/* Left Content */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                    >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-violet-100/50 border border-violet-200 text-violet-700 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
-                            <span className="w-2 h-2 rounded-full bg-violet-600 animate-ping"></span>
-                            Platform Perpustakaan Digital #1
-                        </div>
-
-                        <h1 className="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] mb-6 tracking-tight">
-                            Jelajahi Dunia <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-indigo-600 to-pink-500">
-                                Tanpa Batas.
-                            </span>
-                        </h1>
-
-                        <p className="text-lg text-slate-500 mb-8 leading-relaxed max-w-lg font-medium">
-                            Akses ribuan koleksi buku, jurnal, dan referensi akademik langsung dari genggamanmu. Mudah, Cepat, dan Gratis untuk Siswa.
-                        </p>
-
-                        {/* Search Input Modern */}
-                        <div className="relative max-w-md group z-20">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 to-pink-600 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                            <div className="relative bg-white rounded-full p-2 flex items-center shadow-xl shadow-slate-200/50 border border-slate-100">
-                                <div className="pl-4 pr-2 text-slate-400">
-                                    <Search size={22} />
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Cari buku favoritmu..."
-                                    className="flex-1 bg-transparent border-none outline-none text-slate-800 placeholder:text-slate-400 font-medium h-10"
-                                />
-                                <button className="bg-slate-900 hover:bg-slate-800 text-white h-10 px-6 rounded-full font-bold text-sm transition-all hover:shadow-lg">
-                                    Cari
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Stats / Trust Badges */}
-                        <div className="mt-10 flex items-center gap-6 text-sm font-semibold text-slate-500">
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2 className="text-emerald-500" size={18} /> Gratis Akses
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2 className="text-emerald-500" size={18} /> Terverifikasi
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2 className="text-emerald-500" size={18} /> 24/7 Online
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* Right Image (3D Floating Effect) */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        className="relative hidden lg:block perspective-1000"
-                    >
-                        {/* Main Image */}
-                        <motion.div
-                            animate={{ y: [0, -20, 0] }}
-                            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-                            className="relative z-10 rounded-[3rem] overflow-hidden shadow-2xl shadow-violet-500/20 border-8 border-white bg-white"
-                        >
-                            <img
-                                src="https://images.unsplash.com/photo-1519682337058-a94d519337bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                                alt="Library App"
-                                className="w-full h-[550px] object-cover"
-                            />
-
-                            {/* Glass Card Overlay */}
-                            <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md p-5 rounded-3xl border border-white/50 shadow-lg flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase">Buku Minggu Ini</p>
-                                    <p className="font-bold text-slate-800">Filosofi Teras</p>
-                                </div>
-                                <div className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold">
-                                    Pinjam
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Decorative Background Elements behind image */}
-                        <div className="absolute top-10 -right-10 w-full h-full bg-slate-100 rounded-[3rem] -z-10 rotate-6 border border-slate-200"></div>
-                    </motion.div>
+            {/* === KONTEN STATS === */}
+            <div className="flex gap-8 lg:gap-12 items-center border-t-4 border-black pt-6 w-fit">
+                <div className="text-center">
+                    <p className="text-3xl lg:text-4xl font-black text-black">15K+</p>
+                    <p className="text-[10px] lg:text-xs font-bold uppercase text-black/50 mt-1">Koleksi Buku</p>
                 </div>
-            </header>
+                <div className="w-[4px] h-10 lg:h-12 bg-black"></div>
+                <div className="text-center">
+                    <p className="text-3xl lg:text-4xl font-black text-black">8K+</p>
+                    <p className="text-[10px] lg:text-xs font-bold uppercase text-black/50 mt-1">Peminjam Aktif</p>
+                </div>
+            </div>
+        </motion.div>
 
-            {/* --- SECTION: CATEGORY (BENTO GRID) --- */}
-            <section className="py-24 px-6 relative z-10 bg-white border-t border-slate-100">
+        {/* === KONTEN KANAN (CARD) === */}
+        <motion.div
+            initial={{ x: 30, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="relative hidden lg:block w-fit ml-auto"
+        >
+            <div className="bg-[#FFD600] brutal-border-heavy brutal-shadow-lg rotate-1 p-4 max-w-sm w-full">
+                <img
+                    src="https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    alt="Featured Book"
+                    className="w-full brutal-border-heavy aspect-video object-cover"
+                />
+                <div className="bg-white brutal-border-heavy mt-3 p-4 font-black text-black">
+                    <p className="text-[9px] uppercase text-black/50 mb-1">Pilihan Editor</p>
+                    <p className="text-xl uppercase tracking-tighter">Tentang Kamu</p>
+                    <div className="flex justify-between items-center mt-3 pt-2 border-t-2 border-black/10">
+                        <span className="bg-[#FF4081] text-white px-2 py-0.5 font-bold text-[10px] uppercase">Tere Liye</span>
+                        <span className="flex items-center gap-1 text-base"><Star fill="black" size={14} /> 4.9</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Corner Badges */}
+            <div className="absolute -top-3 -right-4 bg-[#00E5FF] brutal-border px-3 py-1 brutal-shadow font-black -rotate-12 text-sm z-10">
+                GRATIS!
+            </div>
+            <div className="absolute -bottom-4 left-0 bg-[#AEEA00] brutal-border px-3 py-1 brutal-shadow font-black rotate-12 text-sm z-20">
+                LOKAL!
+            </div>
+        </motion.div>
+
+    </div>
+</header>
+
+            {/* --- STATS SECTION --- */}
+            <section className="py-20 bg-black text-white relative z-10 border-y-8 border-black">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                        {STATS.map((stat, idx) => (
+                            <motion.div
+                                key={idx}
+                                initial={{ scale: 0.5, opacity: 0 }}
+                                whileInView={{ scale: 1, opacity: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: idx * 0.1 }}
+                                className={`${stat.color} text-black brutal-border-heavy p-8 brutal-shadow text-center`}
+                            >
+                                <h3 className="text-4xl md:text-5xl font-black mb-2">{stat.value}</h3>
+                                <p className="font-bold uppercase text-sm">{stat.label}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* --- FEATURES SECTION --- */}
+            <section id="features" className="py-24 px-6 relative z-10">
                 <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-16 max-w-2xl mx-auto">
-                        <h2 className="text-3xl font-bold text-slate-900 mb-4">Kategori Populer</h2>
-                        <p className="text-slate-500">Kami telah mengurasi ribuan buku ke dalam kategori yang mudah dijelajahi.</p>
+                    <div className="text-center mb-20">
+                        <h2 className="text-5xl md:text-7xl font-black uppercase mb-4 tracking-tighter">
+                            Kenapa <span className="bg-[#00E5FF] px-4 brutal-border-heavy">Sastra.in?</span>
+                        </h2>
+                        <p className="text-xl font-bold uppercase text-black/60">Teknologi Terkini Untuk Literasi Masa Depan</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid md:grid-cols-3 gap-12">
+                        {FEATURES.map((feature, idx) => (
+                            <motion.div
+                                key={idx}
+                                whileHover={{ y: -10 }}
+                                className={`${feature.color} brutal-border-heavy p-10 brutal-shadow-lg group text-black`}
+                            >
+                                <div className="bg-white brutal-border-heavy w-20 h-20 flex items-center justify-center mb-8 group-hover:rotate-12 transition-transform shadow-none">
+                                    {React.cloneElement(feature.icon, { size: 40 })}
+                                </div>
+                                <h3 className="text-3xl font-black uppercase mb-4 leading-none">{feature.title}</h3>
+                                <p className="font-bold uppercase text-black/70 leading-tight">{feature.desc}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* --- CATEGORIES (BENTO) --- */}
+            <section id="kategori" className="py-24 px-6 relative z-10 bg-white border-y-8 border-black">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8 text-center md:text-left">
+                        <div>
+                            <h2 className="text-5xl md:text-7xl font-black uppercase leading-none tracking-tighter text-black">
+                                Jelajahi <br /> <span className="text-[#FF4081]">Kategori.</span>
+                            </h2>
+                        </div>
+                        <p className="max-w-md font-bold uppercase text-black/60">
+                            Kami mengelompokkan ribuan buku untuk memudahkan pencarian minat bakat kamu.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {KATEGORI.map((cat, idx) => (
                             <motion.div
                                 key={idx}
-                                whileHover={{ y: -8 }}
-                                className={`p-8 rounded-[2rem] border ${cat.color} bg-white hover:border-transparent hover:shadow-2xl hover:shadow-slate-200 transition-all duration-300 cursor-pointer group`}
+                                whileHover={{ scale: 1.02 }}
+                                className={`${cat.color} brutal-border-heavy p-8 brutal-shadow cursor-pointer group flex flex-col justify-between h-[300px] text-black`}
                             >
-                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-xl bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition`}>
+                                <div className="bg-white brutal-border-heavy w-16 h-16 flex items-center justify-center brutal-shadow group-hover:-translate-y-2 transition-transform shadow-none">
                                     {cat.icon}
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">{cat.title}</h3>
-                                <div className="flex items-center justify-between">
-                                    <p className="text-slate-500 text-sm font-medium">{cat.count}</p>
-                                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-slate-900">
-                                        <ArrowRight size={14} />
+                                <div>
+                                    <h3 className="text-3xl font-black uppercase mb-2 leading-none">{cat.title}</h3>
+                                    <p className="font-bold uppercase bg-white/50 inline-block px-2">{cat.count}</p>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* --- TRENDING BOOKS --- */}
+            <section className="py-24 px-6 relative z-10 bg-[#00E5FF] border-b-8 border-black">
+                <div className="max-w-7xl mx-auto">
+                    <h2 className="text-5xl md:text-7xl font-black uppercase mb-16 tracking-tighter text-center md:text-left text-black">
+                        Trending <span className="bg-white px-4 brutal-border-heavy inline-block rotate-2">Minggu Ini</span>
+                    </h2>
+
+                    <div className="flex gap-8 overflow-x-auto pb-12 snap-x scrollbar-hide -mx-6 px-6">
+                        {BUKU_POPULER.map((buku, idx) => (
+                            <motion.div
+                                key={idx}
+                                whileHover={{ rotate: 1 }}
+                                className="min-w-[320px] bg-white brutal-border-heavy brutal-shadow-lg snap-center flex flex-col text-black"
+                            >
+                                <div className="p-4 flex-1">
+                                    <img src={buku.img} alt={buku.title} className="w-full h-64 object-cover brutal-border-heavy mb-6" />
+                                    <div className="flex justify-between items-start mb-4">
+                                        <h3 className="text-2xl font-black uppercase leading-none">{buku.title}</h3>
+                                        <div className="bg-[#FFD600] brutal-border px-2 py-1 flex items-center gap-1 font-black text-sm shadow-none">
+                                            <Star size={14} fill="black" /> {buku.rating}
+                                        </div>
+                                    </div>
+                                    <p className="font-bold uppercase text-black/50 mb-6">{buku.author}</p>
+                                </div>
+                                <button className="w-full bg-black text-white p-6 font-black uppercase text-xl hover:bg-[#FF4081] transition-colors flex items-center justify-center gap-3 border-t-4 border-black">
+                                    Pinjam Sekarang <ArrowRight />
+                                </button>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* --- HOW IT WORKS --- */}
+            <section className="py-24 px-6 relative z-10 bg-[#FFD600]">
+                <div className="max-w-7xl mx-auto">
+                    <h2 className="text-5xl md:text-7xl font-black uppercase mb-20 text-center tracking-tighter text-black">
+                        Gimana Caranya?
+                    </h2>
+
+                    <div className="grid md:grid-cols-3 gap-8 relative">
+                        <div className="hidden md:block absolute top-[50px] left-0 right-0 h-2 bg-black z-0"></div>
+
+                        {HOW_IT_WORKS.map((item, idx) => (
+                            <div key={idx} className="relative z-10">
+                                <div className="bg-[#AEEA00] brutal-border-heavy w-24 h-24 flex items-center justify-center text-4xl font-black brutal-shadow mx-auto mb-8 shadow-none border-4 border-black">
+                                    {item.step}
+                                </div>
+                                <div className="bg-white brutal-border-heavy p-8 brutal-shadow text-center text-black">
+                                    <h3 className="text-2xl font-black uppercase mb-4">{item.title}</h3>
+                                    <p className="font-bold uppercase text-black/70 leading-tight">{item.desc}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* --- TESTIMONIALS --- */}
+            <section className="py-24 px-6 relative z-10 bg-white border-y-8 border-black">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-20">
+                        <Quote size={80} className="mx-auto mb-8 text-[#FF4081]" strokeWidth={3} />
+                        <h2 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-black">Apa Kata Mereka?</h2>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {TESTIMONIALS.map((testi, idx) => (
+                            <motion.div
+                                key={idx}
+                                whileHover={{ rotate: -2 }}
+                                className="bg-white brutal-border-heavy p-8 brutal-shadow-lg flex flex-col gap-6 text-black"
+                            >
+                                <p className="text-lg font-black uppercase leading-tight">"{testi.text}"</p>
+                                <div className="flex items-center gap-4 mt-auto">
+                                    <img src={testi.avatar} alt={testi.name} className="w-16 h-16 rounded-full brutal-border-heavy" />
+                                    <div>
+                                        <p className="font-black uppercase">{testi.name}</p>
+                                        <p className="font-bold text-sm text-black/50 uppercase">{testi.role}</p>
                                     </div>
                                 </div>
                             </motion.div>
@@ -224,83 +374,103 @@ const LandingPage = () => {
                 </div>
             </section>
 
-            {/* --- SECTION: TRENDING HORIZONTAL SCROLL (NETFLIX STYLE) --- */}
-            <section className="py-24 bg-slate-900 text-white overflow-hidden relative">
-                {/* Background Glow */}
-                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-violet-500/20 rounded-full blur-[120px]"></div>
+            {/* --- FAQ SECTION --- */}
+            <section id="faq" className="py-24 px-6 relative z-10 bg-[#FF4081] text-white">
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="text-5xl md:text-7xl font-black uppercase mb-16 text-center tracking-tighter">
+                        Ada Pertanyaan?
+                    </h2>
 
-                <div className="max-w-7xl mx-auto px-6 relative z-10">
-                    <div className="flex items-center justify-between mb-12">
-                        <div>
-                            <h2 className="text-3xl font-bold mb-2">Sedang Trending</h2>
-                            <p className="text-slate-400">Buku yang paling banyak dipinjam minggu ini.</p>
-                        </div>
-                        <div className="hidden md:flex gap-2">
-                            {/* Hint scroll buttons could go here */}
-                        </div>
-                    </div>
-
-                    <div className="flex gap-6 overflow-x-auto pb-10 snap-x scrollbar-hide -mx-6 px-6">
-                        {BUKU_POPULER.map((buku, idx) => (
-                            <div key={idx} className="min-w-[260px] md:min-w-[300px] snap-center group">
-                                <div className="relative aspect-[2/3] rounded-3xl overflow-hidden mb-5 bg-slate-800 shadow-2xl shadow-black/50 border border-white/10">
-                                    <img
-                                        src={buku.img}
-                                        alt={buku.title}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-in-out"
-                                    />
-                                    {/* Overlay Gradient */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60"></div>
-
-                                    {/* Hover Action */}
-                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 bg-slate-900/40 backdrop-blur-sm">
-                                        <button className="px-6 py-3 bg-white text-slate-900 rounded-full font-bold shadow-lg hover:scale-105 transition">
-                                            Lihat Detail
-                                        </button>
-                                    </div>
-
-                                    <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1 text-xs font-bold border border-white/10">
-                                        <Star size={12} className="text-yellow-400 fill-yellow-400" /> {buku.rating}
-                                    </div>
-                                </div>
-                                <h3 className="text-lg font-bold truncate pr-4">{buku.title}</h3>
-                                <p className="text-slate-400 text-sm">{buku.author}</p>
+                    <div className="flex flex-col gap-6">
+                        {FAQ.map((item, idx) => (
+                            <div key={idx} className="bg-white text-black brutal-border-heavy brutal-shadow overflow-hidden shadow-none border-4 border-black">
+                                <button
+                                    className="w-full p-6 flex justify-between items-center text-left font-black uppercase text-xl"
+                                    onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                                >
+                                    {item.q}
+                                    <ChevronDown className={`transition-transform duration-300 ${openFaq === idx ? 'rotate-180' : ''}`} />
+                                </button>
+                                <AnimatePresence>
+                                    {openFaq === idx && (
+                                        <motion.div
+                                            initial={{ height: 0 }}
+                                            animate={{ height: 'auto' }}
+                                            exit={{ height: 0 }}
+                                            className="px-6 pb-6 pr-12 font-bold uppercase text-black/70"
+                                        >
+                                            {item.a}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* --- SECTION: CTA FOOTER --- */}
-            <footer className="bg-white border-t border-slate-200 pt-24 pb-12">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="relative bg-gradient-to-br from-violet-600 to-indigo-700 rounded-[3rem] p-12 md:p-24 text-center overflow-hidden shadow-2xl shadow-violet-200">
-                        {/* Patterns */}
-                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
-                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-pink-500 rounded-full blur-[80px] opacity-40"></div>
-                        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500 rounded-full blur-[80px] opacity-40"></div>
+            {/* --- FOOTER & CTA --- */}
+            <footer className="relative pt-32 pb-12 px-6 z-10 bg-[#AEEA00] border-t-8 border-black">
+                <div className="max-w-7xl mx-auto">
+                    <div className="bg-white brutal-border-heavy brutal-shadow-lg p-12 md:p-24 text-center mb-32 -mt-60 relative z-20 text-black">
+                        <h2 className="text-5xl md:text-8xl font-black uppercase leading-none mb-10 tracking-tighter">
+                            Ayo Gabung <br /> <span className="bg-[#FFD600] px-4 brutal-border-heavy inline-block -rotate-2 my-4">Sekarang Juga!</span>
+                        </h2>
+                        <p className="text-xl md:text-2xl font-black uppercase mb-12 max-w-2xl mx-auto leading-tight">
+                            Ribuan petualangan menantimu <br /> di setiap lembar buku. <br /> Gratis, Tanpa Ribet.
+                        </p>
+                        <Link to="/register" className="bg-black text-white px-12 py-8 text-3xl font-black uppercase brutal-shadow-lg hover:scale-105 transition-transform inline-block">
+                            Daftar Akun Gratis
+                        </Link>
+                    </div>
 
-                        <div className="relative z-10 max-w-3xl mx-auto">
-                            <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-8 tracking-tight">
-                                Mulai Perjalanan Literasimu Hari Ini.
-                            </h2>
-                            <p className="text-violet-100 text-lg md:text-xl mb-10 font-medium">
-                                Bergabung dengan ribuan siswa lainnya. Tanpa biaya, tanpa ribet.
-                            </p>
-                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                <Link to="/register" className="px-10 py-4 bg-white text-violet-700 rounded-full font-bold text-lg hover:bg-slate-50 transition shadow-xl hover:shadow-2xl hover:-translate-y-1">
-                                    Daftar Akun Gratis
-                                </Link>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-16 font-black uppercase mb-20 text-black">
+                        <div className="lg:col-span-1">
+                            <span className="text-4xl font-black uppercase tracking-tighter mb-8 block">Sastra<span className="bg-white px-1 brutal-border border-2 border-black">.in</span></span>
+                            <p className="font-bold text-black/70 leading-tight">Perpustakaan digital modern untuk masa depan Indonesia yang lebih cerdas.</p>
+                        </div>
+                        <div>
+                            <h4 className="text-xl mb-6 bg-black text-white inline-block px-2">Link Cepat</h4>
+                            <ul className="flex flex-col gap-3">
+                                <li><a href="#" className="hover:underline">Beranda</a></li>
+                                <li><a href="#features" className="hover:underline">Fitur</a></li>
+                                <li><a href="#kategori" className="hover:underline">Kategori</a></li>
+                                <li><a href="#faq" className="hover:underline">FAQ</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-xl mb-6 bg-black text-white inline-block px-2">Kontak Kami</h4>
+                            <ul className="flex flex-col gap-3">
+                                <li className="flex items-center gap-2"><Phone size={20} /> 0812-3456-7890</li>
+                                <li className="flex items-center gap-2"><Mail size={20} /> hello@sastra.in</li>
+                                <li className="flex items-center gap-2"><MapPin size={20} /> Tangerang, Indonesia</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-xl mb-6 bg-black text-white inline-block px-2">Ikuti Kami</h4>
+                            <div className="flex gap-4">
+                                <a href="#" className="bg-white brutal-border border-2 border-black p-3 brutal-shadow hover:bg-[#E1306C] hover:text-white cursor-pointer transition-colors" title="Instagram">
+                                    <Instagram size={24} />
+                                </a>
+                                <a href="#" className="bg-white brutal-border border-2 border-black p-3 brutal-shadow hover:bg-[#000000] hover:text-white cursor-pointer transition-colors" title="X (Twitter)">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="w-6 h-6 fill-current">
+                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" className="bg-white brutal-border border-2 border-black p-3 brutal-shadow hover:bg-[#000000] hover:text-white cursor-pointer transition-colors" title="TikTok">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" className="w-6 h-6 fill-current">
+                                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"></path>
+                                    </svg>
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row justify-between items-center mt-16 text-slate-400 text-sm font-medium">
-                        <p>&copy; 2026 Sastra.in.</p>
-                        <div className="flex gap-8 mt-4 md:mt-0">
-                            <a href="#" className="hover:text-violet-600 transition">Kebijakan Privasi</a>
-                            <a href="#" className="hover:text-violet-600 transition">Syarat & Ketentuan</a>
-                            <a href="#" className="hover:text-violet-600 transition">Bantuan</a>
+                    <div className="pt-8 border-t-4 border-black flex flex-col md:flex-row justify-between items-center gap-4 font-black uppercase text-black">
+                        <p>&copy; 2026 Sastra.in - All Rights Reserved.</p>
+                        <div className="flex gap-8 text-sm">
+                            <a href="#" className="hover:underline">Privacy Policy</a>
+                            <a href="#" className="hover:underline">Terms of Service</a>
                         </div>
                     </div>
                 </div>
