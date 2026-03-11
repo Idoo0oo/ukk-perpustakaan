@@ -1,9 +1,14 @@
 // File: client/src/pages/DashboardSiswa.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { motion } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, BookOpen, Filter, LogOut, LayoutGrid, Book, User, Heart } from 'lucide-react';
+import {
+    Search, BookOpen, LogOut, LayoutGrid, Book,
+    User, Heart, Zap, Shield, Users,
+    MessageSquare, ArrowRight, Info, Clock
+} from 'lucide-react';
 import usePageTitle from '../hooks/usePageTitle';
 
 const DashboardSiswa = () => {
@@ -15,58 +20,74 @@ const DashboardSiswa = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [loading, setLoading] = useState(true);
     const [savedBookIds, setSavedBookIds] = useState([]);
-    
+
     const navigate = useNavigate();
-    const location = useLocation(); // Tambahkan useLocation untuk mengecek URL aktif
+    const location = useLocation();
     const token = localStorage.getItem('token');
     const namaUser = localStorage.getItem('namaUser') || 'Siswa';
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const resBuku = await axios.get('http://localhost:5000/api/buku', { headers: { Authorization: `Bearer ${token}` } });
-                setBooks(resBuku.data);
-                setFilteredBooks(resBuku.data);
-
-                const resKategori = await axios.get('http://localhost:5000/api/kategori', { headers: { Authorization: `Bearer ${token}` } });
-                setCategories(resKategori.data);
-
-                const resKoleksi = await axios.get('http://localhost:5000/api/fitur/koleksi', { headers: { Authorization: `Bearer ${token}` } });
-                const ids = resKoleksi.data.map(item => item.BukuID);
-                setSavedBookIds(ids);
-                
-                setLoading(false);
-            } catch (err) {
-                console.error(err);
-                if (err.response?.status === 401) {
-                    localStorage.clear();
-                    navigate('/');
-                }
+    const fetchBooks = useCallback(async () => {
+        try {
+            const resBuku = await axios.get('http://localhost:5000/api/buku', { headers: { Authorization: `Bearer ${token}` } });
+            setBooks(resBuku.data);
+            setFilteredBooks(resBuku.data);
+        } catch (err) {
+            console.error("Error fetching books:", err);
+            if (err.response?.status === 401) {
+                localStorage.clear();
+                navigate('/');
             }
+        }
+    }, [token, navigate]);
+
+    const fetchCategories = useCallback(async () => {
+        try {
+            const resKategori = await axios.get('http://localhost:5000/api/kategori', { headers: { Authorization: `Bearer ${token}` } });
+            setCategories(resKategori.data);
+        } catch (err) {
+            console.error("Error fetching categories:", err);
+        }
+    }, [token]);
+
+    const fetchSavedBooks = useCallback(async () => {
+        try {
+            const resKoleksi = await axios.get('http://localhost:5000/api/fitur/koleksi', { headers: { Authorization: `Bearer ${token}` } });
+            const ids = resKoleksi.data.map(item => item.BukuID);
+            setSavedBookIds(ids);
+        } catch (err) {
+            console.error("Error fetching saved books:", err);
+        }
+    }, [token]);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+        const loadAllData = async () => {
+            setLoading(true);
+            await Promise.all([
+                fetchBooks(),
+                fetchCategories(),
+                fetchSavedBooks()
+            ]);
+            setLoading(false);
         };
-        fetchData();
-    }, [navigate, token]);
+        loadAllData();
+    }, [fetchBooks, fetchCategories, fetchSavedBooks]);
 
     useEffect(() => {
         let result = books;
-
-        // 1. Filter Kategori
         if (selectedCategory !== 'All') {
             result = result.filter(book => {
                 if (!book.NamaKategori) return false;
-                const kategoriBuku = book.NamaKategori.split(', '); 
+                const kategoriBuku = book.NamaKategori.split(', ');
                 return kategoriBuku.includes(selectedCategory);
             });
         }
-        
-        // 2. Filter Pencarian
         if (searchTerm) {
-            result = result.filter(book => 
+            result = result.filter(book =>
                 book.Judul.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 book.Penulis.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
-        
         setFilteredBooks(result);
     }, [searchTerm, selectedCategory, books]);
 
@@ -79,8 +100,13 @@ const DashboardSiswa = () => {
             inputAttributes: { min: 1, max: 14 },
             showCancelButton: true,
             confirmButtonText: 'Ajukan Pinjaman',
-            confirmButtonColor: '#4f46e5',
-            cancelButtonText: 'Batal'
+            confirmButtonColor: '#000',
+            cancelButtonText: 'Batal',
+            customClass: {
+                popup: 'brutal-border-heavy brutal-shadow',
+                confirmButton: 'bg-[#AEEA00] text-black font-black uppercase brutal-border brutal-shadow-sm',
+                cancelButton: 'bg-white text-black font-black uppercase brutal-border brutal-shadow-sm'
+            }
         });
 
         if (lamaPinjam) {
@@ -88,10 +114,29 @@ const DashboardSiswa = () => {
             try {
                 Swal.fire({ title: 'Memproses...', didOpen: () => Swal.showLoading() });
                 await axios.post('http://localhost:5000/api/peminjaman', { bukuID, lamaPinjam }, { headers: { Authorization: `Bearer ${token}` } });
-                Swal.fire({ icon: 'success', title: 'Berhasil Diajukan!', text: 'Silakan tunggu persetujuan dari Admin.', timer: 2000, showConfirmButton: false });
+                Swal.fire({
+                    icon: 'success',
+                    title: '<span class="font-black uppercase">BERHASIL!</span>',
+                    text: 'Silakan tunggu persetujuan dari Admin.',
+                    timer: 2500,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'brutal-border-heavy brutal-shadow bg-[#AEEA00]',
+                        title: 'font-black uppercase',
+                        htmlContainer: 'font-bold uppercase text-xs'
+                    }
+                });
                 navigate('/peminjam/pinjaman-saya');
             } catch (err) {
-                Swal.fire('Gagal', err.response?.data?.message || 'Terjadi kesalahan.', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: '<span class="font-black uppercase">GAGAL</span>',
+                    text: err.response?.data?.message || 'Terjadi kesalahan.',
+                    customClass: {
+                        popup: 'brutal-border-heavy brutal-shadow',
+                        confirmButton: 'bg-black text-white font-black uppercase brutal-border brutal-shadow-sm'
+                    }
+                });
             }
         }
     };
@@ -100,12 +145,20 @@ const DashboardSiswa = () => {
         try {
             const isCurrentlySaved = savedBookIds.includes(bukuID);
             setSavedBookIds(prev => isCurrentlySaved ? prev.filter(id => id !== bukuID) : [...prev, bukuID]);
-
-            const res = await axios.post('http://localhost:5000/api/fitur/koleksi', { bukuID }, { headers: { Authorization: `Bearer ${token}` } });
-            
+            await axios.post('http://localhost:5000/api/fitur/koleksi', { bukuID }, { headers: { Authorization: `Bearer ${token}` } });
             Swal.fire({
-                icon: 'success', title: 'Sukses', text: res.data.isSaved ? 'Disimpan ke Koleksi!' : 'Dihapus dari Koleksi.',
-                timer: 1000, showConfirmButton: false, toast: true, position: 'top-end'
+                icon: 'success',
+                title: `<span class="font-black uppercase text-sm">${isCurrentlySaved ? 'DIHAPUS' : 'DISIMPAN'}</span>`,
+                text: isCurrentlySaved ? 'Buku dihapus dari Koleksi.' : 'Buku disimpan ke Koleksi!',
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end',
+                customClass: {
+                    popup: `brutal-border-heavy brutal-shadow border-4 border-black ${isCurrentlySaved ? 'bg-[#FF4081]' : 'bg-[#AEEA00]'}`,
+                    title: 'text-black font-black',
+                    htmlContainer: 'font-black uppercase text-xs text-black/80'
+                }
             });
         } catch (err) {
             console.error(err);
@@ -116,11 +169,15 @@ const DashboardSiswa = () => {
     const handleLogout = () => {
         Swal.fire({
             title: 'Keluar?', text: "Sesi Anda akan berakhir.", icon: 'warning',
-            showCancelButton: true, confirmButtonText: 'Ya, Keluar', confirmButtonColor: '#d33'
+            showCancelButton: true, confirmButtonText: 'Ya, Keluar', confirmButtonColor: '#FF4081',
+            customClass: {
+                popup: 'brutal-border-heavy brutal-shadow',
+                confirmButton: 'bg-[#FF4081] text-white font-black uppercase brutal-border brutal-shadow-sm',
+                cancelButton: 'bg-white text-black font-black uppercase brutal-border brutal-shadow-sm'
+            }
         }).then((res) => { if (res.isConfirmed) { localStorage.clear(); navigate('/'); } });
     };
 
-    // --- Definisi Menu Items untuk Navbar Bawah ---
     const menuItems = [
         { path: '/peminjam', name: 'Katalog', icon: <LayoutGrid size={22} /> },
         { path: '/peminjam/koleksi', name: 'Koleksi Saya', icon: <Heart size={22} /> },
@@ -128,185 +185,300 @@ const DashboardSiswa = () => {
     ];
 
     return (
-        <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-gray-900 relative overflow-hidden">
-            
-            {/* --- HEADER ATAS (Style Baru, Mirip Admin) --- */}
-            <header className="h-20 bg-white/60 backdrop-blur-md border-b border-gray-200/50 flex items-center justify-between px-8 shadow-sm z-30 sticky top-0">
-                <div className="flex items-center gap- 0">
-                    <div className="flex items-center justify-center bg-transparent drop-shadow-md w-14 h-14">
-                                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain scale-150 drop-shadow-[0_4px_12px_rgba(124,58,237,0.3)]" />
-                            </div>
-                    <span className="text-xl font-bold tracking-tight text-slate-900 hidden sm:block">
-                        Sastra<span className="text-violet-600 italic">.in</span>
-                    </span>
-                    
-                    {/* Badge Siswa Panel */}
-                    <div className="hidden md:flex items-center gap-2 ml-4 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 shadow-sm">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
-                        </span>
-                        <span className="text-xs font-bold tracking-widest text-indigo-700 uppercase">
-                            Siswa Panel
-                        </span>
-                    </div>
+        <div className="flex flex-col min-h-screen bg-[#FFFBEB] font-mono text-black relative selection:bg-[#FFD600]">
+            {/* GRID BACKGROUND */}
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-10" style={{
+                backgroundImage: `linear-gradient(#000 1.5px, transparent 1.5px), linear-gradient(90deg, #000 1.5px, transparent 1.5px)`,
+                backgroundSize: '40px 40px'
+            }}></div>
+
+            {/* --- ANNOUNCEMENT MARQUEE --- */}
+            <div className="bg-black text-white py-2 overflow-hidden whitespace-nowrap relative z-40 border-b-4 border-black">
+                <motion.div
+                    animate={{ x: [0, -1000] }}
+                    transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+                    className="inline-block"
+                >
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Perhatian: Perpustakaan tutup pada hari libur nasional!</span>
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Koleksi baru bulan Maret telah tersedia!</span>
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Ayo ulas buku yang sudah kamu baca untuk poin ekstra!</span>
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Perhatian: Perpustakaan tutup pada hari libur nasional!</span>
+                </motion.div>
+            </div>
+
+            {/* --- HEADER --- */}
+            <header className="h-20 bg-white border-b-4 border-black flex items-center justify-between px-6 md:px-12 sticky top-0 z-50">
+                <div className="flex items-center gap-2">
+                    <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain hover:rotate-12 transition-transform" />
+                    <span className="text-2xl font-black uppercase tracking-tighter">Sastra<span className="bg-[#FFD600] px-1 border-2 border-black ml-1">.in</span></span>
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <div className="text-right hidden sm:block">
-                        <p className="text-sm font-bold text-gray-800">{namaUser}</p>
-                        <p className="text-xs text-gray-500 font-medium">Siswa</p>
+                    <div className="hidden sm:block text-right">
+                        <p className="text-sm font-black uppercase leading-none">{namaUser}</p>
+                        <p className="text-[10px] font-bold text-black/50 uppercase">PEMINJAM</p>
                     </div>
-                    <div className="avatar placeholder cursor-pointer hover:ring-2 hover:ring-violet-300 transition-all rounded-full">
-                        <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-full w-11 h-11 flex items-center justify-center shadow-md">
-                            <span className="text-sm font-bold">{namaUser.substring(0, 2).toUpperCase()}</span>
+                    <div className="w-12 h-12 bg-[#AEEA00] brutal-border brutal-shadow-sm flex items-center justify-center font-black text-xl">
+                        {namaUser.substring(0, 1).toUpperCase()}
+                    </div>
+                </div>
+            </header>
+
+            <main className="flex-1 w-full max-w-7xl mx-auto px-6 md:px-12 pt-12 pb-32 relative z-10">
+                {/* --- HERO / WELCOME --- */}
+                <div className="mb-16 grid lg:grid-cols-[1fr_0.4fr] gap-8 items-center">
+                    <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
+                        <div className="inline-block bg-[#00E5FF] brutal-border px-2 py-1 font-black text-xs uppercase mb-4 brutal-shadow-sm">
+                            Selamat Datang Kembali!
+                        </div>
+                        <h1 className="text-5xl md:text-7xl font-black uppercase leading-[0.9] tracking-tighter mb-6">
+                            Waktunya <br /> <span className="bg-[#FF4081] text-white px-3 rotate-1 inline-block my-1 brutal-border-heavy">Berpetualang</span> <br /> di Lembar Buku.
+                        </h1>
+                        <p className="text-lg font-black uppercase text-black/60 max-w-md leading-tight">
+                            Pinjam buku favoritmu sekarang, <br /> baca di mana saja, kapan saja.
+                        </p>
+                    </motion.div>
+
+                    <div className="hidden lg:block">
+                        <div className="bg-[#FFD600] brutal-border-heavy brutal-shadow p-6 rotate-2 hover:rotate-0 transition-transform cursor-help group">
+                            <Info size={32} className="mb-4 group-hover:scale-110 transition-transform" />
+                            <h3 className="text-xl font-black uppercase mb-2 leading-none">Status Akun</h3>
+                            <div className="bg-white brutal-border p-3 font-black text-xs uppercase space-y-2">
+                                <div className="flex justify-between"><span>Status</span> <span className="text-green-600">Aktif</span></div>
+                                <div className="flex justify-between"><span>Limit</span> <span>UNLIMITED</span></div>
+                                <div className="w-full bg-black h-2 mt-2">
+                                    <div className="bg-[#AEEA00] h-full w-full"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </header>
 
-            {/* --- HERO BANNER --- */}
-            <header className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-12 px-6 shadow-xl shadow-indigo-200">
-                <div className="max-w-6xl mx-auto">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2">
-                        Halo, {namaUser}
-                    </h1>
-                    <p className="text-violet-100 text-lg">Temukan buku favoritmu dan mulai membaca hari ini.</p>
+                {/* --- STATS GRID --- */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+                    {[
+                        { label: 'Buku Dipinjam', value: '2', color: 'bg-[#AEEA00]', icon: <Book /> },
+                        { label: 'Buku Terlambat', value: '0', color: 'bg-[#FF4081]', icon: <Clock /> },
+                        { label: 'Koleksi Saya', value: savedBookIds.length, color: 'bg-[#00E5FF]', icon: <Heart /> },
+                        { label: 'Point Literasi', value: '450', color: 'bg-[#FFD600]', icon: <Zap /> },
+                    ].map((s, i) => (
+                        <div key={i} className={`${s.color} brutal-border-heavy brutal-shadow p-6 group`}>
+                            <div className="bg-white brutal-border w-10 h-10 flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform shadow-none">
+                                {s.icon}
+                            </div>
+                            <h3 className="text-4xl font-black mb-1">{s.value}</h3>
+                            <p className="text-[10px] font-black uppercase tracking-wider text-black/60 leading-none">{s.label}</p>
+                        </div>
+                    ))}
                 </div>
-            </header>
 
-            {/* --- MAIN CONTENT AREA --- */}
-            {/* Perhatikan penambahan pb-32 di sini agar konten paling bawah tidak tertutup oleh navbar mengambang */}
-            <main className="flex-1 w-full max-w-6xl mx-auto px-6 pt-8 pb-32 overflow-y-auto overflow-x-hidden">
-                {/* Search & Filter Component */}
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between mb-8 z-20">
-                    <div className="relative w-full md:w-96">
-                        <Search className="absolute left-3 top-3 text-gray-400" size={20} />
-                        <input 
-                            type="text" placeholder="Cari judul buku atau penulis..." 
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all"
-                            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                {/* --- FEATURED SECTION --- */}
+                <div className="grid lg:grid-cols-2 gap-12 mb-24">
+                    <div className="bg-[#FFD600] brutal-border-heavy brutal-shadow-lg p-10 flex flex-col justify-between">
+                        <div>
+                            <span className="bg-black text-white px-3 py-1 font-black text-xs uppercase mb-6 inline-block">Book of the Week</span>
+                            <h2 className="text-4xl md:text-5xl font-black uppercase leading-none tracking-tighter mb-4">Filosofi Teras</h2>
+                            <p className="font-black uppercase text-black/60 mb-8 max-w-sm leading-tight">
+                                Belajar Stoikisme dengan cara yang asik dan relevan buat anak muda zaman sekarang.
+                            </p>
+                        </div>
+                        <div className="flex gap-4">
+                            <button className="bg-black text-white px-8 py-4 font-black uppercase text-lg brutal-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
+                                Pinjam Sekarang <ArrowRight size={20} />
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                        <Filter size={20} className="text-gray-400 min-w-[20px]" />
-                        <button onClick={() => setSelectedCategory('All')} className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === 'All' ? 'bg-violet-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Semua</button>
+
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="bg-[#00E5FF] brutal-border-heavy brutal-shadow p-6 flex flex-col justify-center items-center text-center">
+                            <Zap size={48} className="mb-4" />
+                            <h3 className="text-xl font-black uppercase leading-tight">Pinjam Instan</h3>
+                            <p className="text-[10px] font-bold uppercase mt-2">Persetujuan otomatis untuk member VIP.</p>
+                        </div>
+                        <div className="bg-[#AEEA00] brutal-border-heavy brutal-shadow p-6 flex flex-col justify-center items-center text-center">
+                            <Shield size={48} className="mb-4" />
+                            <h3 className="text-xl font-black uppercase leading-tight">Aman & Nyaman</h3>
+                            <p className="text-[10px] font-bold uppercase mt-2">Data kamu terlindungi 100%.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* --- BORROWING GUIDE --- */}
+                <div className="mb-24">
+                    <h2 className="text-4xl font-black uppercase mb-12 tracking-tighter text-center">Mau Pinjam? <span className="bg-[#FF4081] text-white px-3">Gampang Banget!</span></h2>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {[
+                            { step: '01', title: 'Pilih Buku', desc: 'Cari buku yang kamu suka di katalog kami.' },
+                            { step: '02', title: 'Klik Pinjam', desc: 'Isi durasi pinjam dan ajukan permintaan.' },
+                            { step: '03', title: 'Baca Sepuasnya', desc: 'Setelah disetujui, buku siap kamu nikmati!' },
+                        ].map((g, i) => (
+                            <div key={i} className="bg-white brutal-border-heavy brutal-shadow p-8 relative pt-12">
+                                <div className="absolute -top-6 left-8 w-14 h-14 bg-black text-white brutal-border flex items-center justify-center font-black text-2xl">
+                                    {g.step}
+                                </div>
+                                <h3 className="text-2xl font-black uppercase mb-3 leading-none">{g.title}</h3>
+                                <p className="font-bold uppercase text-black/50 text-sm leading-tight">{g.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* --- MAIN CATALOG --- */}
+                <div id="katalog-section">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+                        <div>
+                            <h2 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none">
+                                Katalog <br /> <span className="text-[#FF4081]">Buku.</span>
+                            </h2>
+                            <p className="mt-4 text-xs font-black uppercase text-black/50 max-w-[200px]">Ribuan koleksi menantimu di sini. Temukan duniamu.</p>
+                        </div>
+
+                        {/* INTEGRATED SEARCH */}
+                        <div className="w-full md:max-w-md">
+                            <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={20} />
+                                <input
+                                    type="text"
+                                    placeholder="CARI JUDUL / PENULIS..."
+                                    className="w-full pl-12 pr-4 py-3 bg-white border-4 border-black font-black uppercase text-sm focus:outline-none focus:bg-[#AEEA00] transition-colors brutal-shadow-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* INTEGRATED CATEGORY FILTERS */}
+                    <div className="flex flex-wrap gap-3 mb-12">
+                        <button
+                            onClick={() => setSelectedCategory('All')}
+                            className={`px-5 py-2 brutal-border font-black uppercase text-xs transition-all ${selectedCategory === 'All' ? 'bg-black text-white -translate-y-1 brutal-shadow-sm' : 'bg-white text-black hover:bg-[#FFD600]'}`}
+                        >
+                            Semua
+                        </button>
                         {categories.map(cat => (
-                            <button key={cat.KategoriID} onClick={() => setSelectedCategory(cat.NamaKategori)} className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat.NamaKategori ? 'bg-violet-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                            <button
+                                key={cat.KategoriID}
+                                onClick={() => setSelectedCategory(cat.NamaKategori)}
+                                className={`px-5 py-2 brutal-border font-black uppercase text-xs transition-all ${selectedCategory === cat.NamaKategori ? 'bg-black text-white -translate-y-1 brutal-shadow-sm' : 'bg-white text-black hover:bg-[#FFD600]'}`}
+                            >
                                 {cat.NamaKategori}
                             </button>
                         ))}
                     </div>
+
+                    {loading ? (
+                        <div className="flex items-center justify-center py-20">
+                            <div className="w-16 h-16 border-8 border-black border-t-[#FFD600] animate-spin"></div>
+                        </div>
+                    ) : filteredBooks.length === 0 ? (
+                        <div className="bg-white brutal-border-heavy p-20 text-center brutal-shadow">
+                            <BookOpen size={64} className="mx-auto mb-6 opacity-20" />
+                            <p className="text-2xl font-black uppercase">Ups! Buku tidak ditemukan.</p>
+                            <button onClick={() => { setSearchTerm(''); setSelectedCategory('All') }} className="mt-6 bg-[#AEEA00] brutal-border px-6 py-2 font-black uppercase brutal-shadow-sm">Reset Filter</button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            {filteredBooks.map(book => (
+                                <motion.div
+                                    whileHover={{ y: -5 }}
+                                    key={book.BukuID}
+                                    className="bg-white brutal-border-heavy brutal-shadow flex flex-col relative overflow-visible group"
+                                >
+                                    <div className="h-64 bg-[#F3F4F6] relative overflow-hidden border-b-4 border-black">
+                                        {book.Gambar ? (
+                                            <img src={`http://localhost:5000/uploads/${book.Gambar}`} alt={book.Judul} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center opacity-20"><Book size={80} /></div>
+                                        )}
+                                        <button
+                                            onClick={() => handleBookmark(book.BukuID)}
+                                            className={`absolute top-4 right-4 p-3 brutal-border-heavy brutal-shadow-sm z-10 transition-colors ${savedBookIds.includes(book.BukuID) ? "bg-[#FF4081] text-white" : "bg-white text-black hover:bg-[#FF4081] hover:text-white"}`}
+                                        >
+                                            <Heart size={20} fill={savedBookIds.includes(book.BukuID) ? "currentColor" : "none"} />
+                                        </button>
+                                        <div className="absolute bottom-4 left-4 bg-[#00E5FF] brutal-border px-2 py-0.5 font-black text-[10px] uppercase shadow-none z-10 border-2 border-black">
+                                            {book.NamaKategori || 'UMUM'}
+                                        </div>
+                                    </div>
+
+                                    <div className="p-6 flex-1 flex flex-col">
+                                        <h3 className="font-black text-xl uppercase mb-1 line-clamp-2 leading-none" title={book.Judul}>{book.Judul}</h3>
+                                        <p className="text-xs font-bold text-black/50 uppercase flex items-center gap-1 mb-6"><User size={12} /> {book.Penulis}</p>
+
+                                        <div className="mt-auto pt-6 border-t-4 border-black/5 flex items-center justify-between">
+                                            <div>
+                                                <span className="block text-[10px] font-black text-black/40 uppercase">Tersedia</span>
+                                                <span className={`text-2xl font-black ${book.Stok > 0 ? 'text-black' : 'text-red-500'}`}>{book.Stok}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => handlePinjam(book.BukuID, book.Judul)}
+                                                disabled={book.Stok <= 0}
+                                                className={`px-6 py-3 font-black uppercase text-sm brutal-border brutal-shadow-sm transition-all ${book.Stok > 0 ? 'bg-[#AEEA00] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none' : 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-400 shadow-none'}`}
+                                            >
+                                                {book.Stok > 0 ? 'Pinjam' : 'Habis'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {/* List Buku */}
-                {loading ? (
-                    <div className="text-center py-20"><span className="loading loading-spinner loading-lg text-primary"></span></div>
-                ) : filteredBooks.length === 0 ? (
-                    <div className="text-center py-20 text-gray-400">
-                        <BookOpen size={48} className="mx-auto mb-4 opacity-50" />
-                        <p className="text-lg">Buku tidak ditemukan.</p>
+                {/* --- COMMUNITY HUB & NEWSLETTER --- */}
+                <div className="mt-32 grid md:grid-cols-[1.2fr_0.8fr] gap-8">
+                    <div className="bg-[#AEEA00] brutal-border-heavy brutal-shadow-lg p-12">
+                        <MessageSquare size={48} className="mb-6" />
+                        <h2 className="text-4xl font-black uppercase tracking-tighter mb-4 leading-none">Join the Sastra.in Community!</h2>
+                        <p className="font-black uppercase text-black/60 mb-8 max-w-md leading-tight">Dapatkan Update koleksi terbaru dan info event literasi seru setiap minggunya.</p>
+                        <div className="flex gap-4">
+                            <input type="email" placeholder="EMAIL@KAMU.COM" className="flex-1 bg-white brutal-border px-4 py-3 font-black placeholder:text-black/30 outline-none" />
+                            <button className="bg-black text-white px-6 py-3 font-black uppercase brutal-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">GABUNG</button>
+                        </div>
                     </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {filteredBooks.map(book => (
-                            <div key={book.BukuID} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group">
-                                <div className="h-56 bg-slate-100 relative overflow-hidden group">
-                                    {book.Gambar ? (
-                                        <img src={`http://localhost:5000/uploads/${book.Gambar}`} alt={book.Judul} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                                    ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-violet-50 to-indigo-50 flex items-center justify-center">
-                                            <Book size={64} className="text-violet-200" />
-                                        </div>
-                                    )}
-                                    <button 
-                                        onClick={() => handleBookmark(book.BukuID)}
-                                        className={`absolute top-3 right-3 p-2.5 rounded-full transition-all shadow-md z-10 ${savedBookIds.includes(book.BukuID) ? "bg-white text-pink-500" : "bg-white/90 text-slate-400 hover:text-pink-500"}`}
-                                        title={savedBookIds.includes(book.BukuID) ? "Hapus dari Koleksi" : "Simpan ke Koleksi"}
-                                    >
-                                        <Heart size={18} fill={savedBookIds.includes(book.BukuID) ? "currentColor" : "none"} />
-                                    </button>
-                                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 shadow-sm z-10">
-                                        {book.NamaKategori || 'Umum'}
-                                    </div>
-                                </div>
 
-                                <div className="p-5 flex-1 flex flex-col">
-                                    <h3 className="font-bold text-lg text-slate-800 mb-1 line-clamp-2 leading-tight" title={book.Judul}>{book.Judul}</h3>
-                                    <p className="text-sm text-slate-500 mb-4 flex items-center gap-1"><User size={14} /> {book.Penulis}</p>
-                                    
-                                    <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-                                        <div className="text-xs">
-                                            <span className="block text-slate-400">Stok</span>
-                                            <span className={`font-bold text-lg ${book.Stok > 0 ? 'text-emerald-600' : 'text-red-500'}`}>{book.Stok}</span>
-                                        </div>
-                                        <button 
-                                            onClick={() => handlePinjam(book.BukuID, book.Judul)}
-                                            disabled={book.Stok <= 0}
-                                            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md ${book.Stok > 0 ? 'bg-violet-600 hover:bg-violet-700 text-white' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
-                                        >
-                                            {book.Stok > 0 ? 'Pinjam' : 'Habis'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="bg-white brutal-border-heavy brutal-shadow p-8 flex flex-col justify-center">
+                        <Users size={32} className="mb-4" />
+                        <h3 className="text-2xl font-black uppercase mb-4 leading-none">Diskusi Buku</h3>
+                        <p className="font-bold uppercase text-black/50 text-sm mb-6 leading-tight">Belum ada fitur diskusi, tapi tenang... bakal segera hadir kok buat kamu!</p>
+                        <div className="w-full bg-black/5 h-12 flex items-center justify-center font-black uppercase text-xs opacity-50 border-2 border-dashed border-black">Coming Soon</div>
                     </div>
-                )}
+                </div>
             </main>
 
-            {/* --- FLOATING NAVBAR BAWAH (GLASSMORPHISM) --- */}
-            <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 px-4 w-full max-w-max">
-                <nav className="flex items-center gap-2 px-3 py-3 rounded-full bg-white/50 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] overflow-x-auto scrollbar-hide">
-                    
+            {/* --- FLOATING NAVBAR BAWAH --- */}
+            <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 px-4 w-full flex justify-center">
+                <nav className="flex items-center gap-2 p-2 bg-white brutal-border-heavy brutal-shadow-lg max-w-max overflow-x-auto scrollbar-hide">
                     {menuItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         return (
-                            <Link 
-                                key={item.path} 
+                            <Link
+                                key={item.path}
                                 to={item.path}
-                                className={`group relative flex items-center h-12 rounded-full transition-all duration-300 ease-in-out
-                                    ${isActive 
-                                        ? 'bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-500/40 px-4' 
-                                        : 'bg-transparent text-gray-600 hover:bg-white/80 hover:text-violet-600 px-3'
+                                className={`group flex items-center gap-2 px-6 py-3 transition-all duration-200
+                                    ${isActive
+                                        ? 'bg-black text-white brutal-border brutal-shadow-sm'
+                                        : 'bg-white text-black hover:bg-[#FFD600] active:translate-y-1'
                                     }`}
                             >
-                                {/* Ikon Menu */}
-                                <span className="shrink-0 flex items-center justify-center">
-                                    {item.icon}
-                                </span>
-
-                                {/* Teks menu: tampil melebar saat aktif / hover */}
-                                <span className={`overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out font-medium text-sm
-                                    ${isActive 
-                                        ? 'max-w-[200px] ml-2.5 opacity-100' 
-                                        : 'max-w-0 opacity-0 group-hover:max-w-[200px] group-hover:ml-2.5 group-hover:opacity-100'
-                                    }`}
-                                >
-                                    {item.name}
-                                </span>
+                                <span className="shrink-0">{item.icon}</span>
+                                <span className="font-black uppercase text-xs whitespace-nowrap">{item.name}</span>
                             </Link>
                         );
                     })}
 
-                    {/* Garis Pembatas Vertikal */}
-                    <div className="w-[2px] h-8 bg-gray-300/50 mx-1 rounded-full shrink-0"></div>
+                    <div className="w-1 h-8 bg-black mx-1"></div>
 
-                    {/* Tombol Logout */}
-                    <button 
-                        onClick={handleLogout} 
-                        className="group relative flex items-center h-12 px-3 rounded-full text-red-500 hover:bg-red-50 hover:text-red-600 transition-all duration-300 ease-in-out shrink-0"
+                    <button
+                        onClick={handleLogout}
+                        className="group flex items-center gap-2 px-6 py-3 bg-white text-black hover:bg-[#FF4081] hover:text-white transition-all duration-200 active:translate-y-1"
                     >
-                        <span className="shrink-0 flex items-center justify-center">
-                            <LogOut size={22} />
-                        </span>
-                        <span className="overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out font-medium text-sm max-w-0 opacity-0 group-hover:max-w-[100px] group-hover:ml-2.5 group-hover:opacity-100">
-                            Logout
-                        </span>
+                        <LogOut size={22} />
+                        <span className="font-black uppercase text-xs whitespace-nowrap">Logout</span>
                     </button>
                 </nav>
             </div>
-
         </div>
     );
 };

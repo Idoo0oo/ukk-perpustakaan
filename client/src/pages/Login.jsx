@@ -73,7 +73,7 @@ const Login = () => {
                 className="relative z-10 w-full max-sm:max-w-[320px] max-w-sm bg-white brutal-border-heavy brutal-shadow p-6 md:p-8"
             >
                 {/* Bumper Badge - Dipaksa keluar dengan nilai negatif & shadow tebal */}
-                <div className="absolute -top-5 -left-5 bg-[#AEEA00] brutal-border px-3 py-1 text-black font-black text-[10px] uppercase -rotate-6 z-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] whitespace-nowrap">
+                <div className="absolute -top-5 -left-5 bg-[#00E5FF] brutal-border px-3 py-1 text-black font-black text-[10px] uppercase -rotate-6 z-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] whitespace-nowrap">
                     AYO BACA BUKU
                 </div>
                 <div className="flex flex-col items-center mb-6">

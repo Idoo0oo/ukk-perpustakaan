@@ -25,7 +25,7 @@ class PeminjamanModel {
             SELECT 
                 p.PeminjamanID, p.UserID, p.BukuID,
                 p.TanggalPeminjaman, p.TanggalPengembalian, p.StatusPeminjaman, p.Denda,
-                b.Judul AS JudulBuku, b.Judul, b.Penulis,
+                b.Judul AS JudulBuku, b.Judul, b.Penulis, b.Gambar,
                 u.NamaLengkap AS NamaPeminjam, u.Username,
                 (SELECT COUNT(*) FROM ulasanbuku ub WHERE ub.UserID = p.UserID AND ub.BukuID = p.BukuID) AS SudahDiulas
             FROM peminjaman p
