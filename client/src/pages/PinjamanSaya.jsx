@@ -219,64 +219,94 @@ const PinjamanSaya = () => {
                     <div className="grid gap-6">
                         {loans.map((loan) => (
                             <motion.div
-                                initial={{ opacity: 0, y: 10 }}
+                                initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
+                                whileHover={{ y: -5 }}
                                 key={loan.PeminjamanID}
-                                className="bg-white brutal-border-heavy brutal-shadow flex flex-col md:flex-row overflow-hidden group hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                                className="bg-white brutal-border-heavy brutal-shadow-lg flex flex-col md:flex-row overflow-visible group transition-all"
                             >
-                                <div className="w-full md:w-48 h-64 md:h-auto bg-[#F3F4F6] relative border-b-4 md:border-b-0 md:border-r-4 border-black overflow-hidden shrink-0">
+                                {/* LEFT: BOOK COVER */}
+                                <div className="w-full md:w-56 h-72 md:h-auto bg-[#F3F4F6] relative border-b-4 md:border-b-0 md:border-r-4 border-black overflow-hidden shrink-0">
                                     {loan.Buku?.Gambar ? (
                                         <img
                                             src={`http://localhost:5000/uploads/${loan.Buku.Gambar}`}
                                             alt={loan.Buku.Judul}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center opacity-20"><Book size={48} /></div>
+                                        <div className="w-full h-full flex items-center justify-center opacity-20"><Book size={64} /></div>
                                     )}
-                                    <div className={`absolute top-0 left-0 px-4 py-2 font-black uppercase text-[10px] brutal-border border-t-0 border-l-0 brutal-shadow-sm z-10 ${loan.StatusPeminjaman === 'Dipinjam' ? 'bg-[#AEEA00]' :
-                                        loan.StatusPeminjaman === 'Kembali' ? 'bg-[#FFD600]' :
-                                            'bg-gray-200'
-                                        }`}>
+                                    
+                                    {/* STATUS BADGE - ROTATED */}
+                                    <div className={`absolute top-4 -left-2 px-4 py-1 font-black uppercase text-xs brutal-border brutal-shadow-sm z-10 -rotate-12 transition-transform group-hover:rotate-0 ${
+                                        loan.StatusPeminjaman === 'Dipinjam' ? 'bg-[#AEEA00]' :
+                                        loan.StatusPeminjaman === 'Kembali' ? 'bg-[#FFD600]' : 'bg-gray-200'
+                                    }`}>
                                         {loan.StatusPeminjaman}
                                     </div>
                                 </div>
 
-                                <div className="p-8 flex-1 flex flex-col justify-between">
+                                {/* RIGHT: CONTENT */}
+                                <div className="p-8 md:p-10 flex-1 flex flex-col justify-between relative">
+                                    {/* DECORATIVE ELEMENT */}
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#FFD600]/10 rounded-full -mr-12 -mt-12 pointer-events-none"></div>
+
                                     <div>
-                                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                                            <span className="text-[10px] font-black uppercase text-black/40">ID PINJAM: #{loan.PeminjamanID}</span>
+                                        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                                            <span className="bg-black text-white px-3 py-1 text-[10px] font-black uppercase brutal-border border-black">
+                                                ID: #{loan.PeminjamanID}
+                                            </span>
+                                            <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+                                                {loan.StatusPeminjaman === 'Dipinjam' ? (
+                                                    <span className="bg-white brutal-border border-red-500 text-red-500 px-3 py-1 flex items-center gap-1 animate-pulse">
+                                                        <AlertCircle size={14} /> SISA 5 HARI!
+                                                    </span>
+                                                ) : (
+                                                    <span className="bg-white brutal-border border-[#AEEA00] text-[#AEEA00] px-3 py-1 flex items-center gap-1">
+                                                        <CheckCircle size={14} /> SELESAI
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
-                                        <h3 className="text-3xl font-black uppercase leading-none mb-2">{loan.Buku?.Judul}</h3>
-                                        <div className="flex items-center gap-4 text-xs font-black uppercase text-black/60 mb-8">
-                                            <span className="flex items-center gap-1"><Calendar size={14} /> {new Date(loan.TanggalPeminjaman).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                                            <span className="flex items-center gap-1"><Clock size={14} /> {new Date(loan.TanggalPengembalian).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+
+                                        <h3 className="text-4xl md:text-5xl font-black uppercase leading-none mb-4 group-hover:text-[#FF4081] transition-colors line-clamp-2">
+                                            {loan.Buku?.Judul}
+                                        </h3>
+                                        
+                                        <div className="flex flex-wrap items-center gap-4 mb-8">
+                                            <div className="bg-[#00E5FF] brutal-border px-3 py-2 flex items-center gap-2 text-xs font-black uppercase brutal-shadow-sm">
+                                                <Calendar size={16} /> 
+                                                <span>Pinjam: {new Date(loan.TanggalPeminjaman).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                            </div>
+                                            <div className="bg-[#FFD600] brutal-border px-3 py-2 flex items-center gap-2 text-xs font-black uppercase brutal-shadow-sm">
+                                                <Clock size={16} /> 
+                                                <span>Kembali: {new Date(loan.TanggalPengembalian).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-wrap gap-4 pt-6 border-t-4 border-dashed border-black/10">
-                                        {loan.StatusPeminjaman === 'Dipinjam' && (
-                                            <button
-                                                onClick={() => handleReturn(loan.PeminjamanID, loan.Buku?.Judul)}
-                                                className="bg-[#00E5FF] brutal-border px-6 py-3 font-black uppercase text-xs brutal-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2"
-                                            >
-                                                Kembalikan Buku
-                                            </button>
-                                        )}
-                                        {loan.StatusPeminjaman === 'Kembali' && (
-                                            <button
-                                                onClick={() => handleUlasan(loan.BukuID, loan.Buku?.Judul)}
-                                                className="bg-[#FF4081] text-white brutal-border px-6 py-3 font-black uppercase text-xs brutal-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2"
-                                            >
-                                                <Star size={14} /> Kasih Ulasan
-                                            </button>
-                                        )}
-                                        <div className="ml-auto flex items-center gap-2 text-[10px] font-black uppercase">
-                                            {loan.StatusPeminjaman === 'Dipinjam' ? (
-                                                <span className="text-red-500 animate-pulse flex items-center gap-1"><AlertCircle size={14} /> Sisa 5 Hari Lagi!</span>
-                                            ) : (
-                                                <span className="text-[#AEEA00] flex items-center gap-1"><CheckCircle size={14} /> Sudah Selesai</span>
+                                    <div className="flex flex-wrap items-center justify-between gap-6 pt-8 border-t-4 border-black">
+                                        <div className="flex flex-wrap gap-4">
+                                            {loan.StatusPeminjaman === 'Dipinjam' && (
+                                                <button
+                                                    onClick={() => handleReturn(loan.PeminjamanID, loan.Buku?.Judul)}
+                                                    className="bg-[#00E5FF] brutal-border-heavy px-8 py-4 font-black uppercase text-sm brutal-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2 active:bg-white"
+                                                >
+                                                    <LogOut size={18} className="rotate-180" /> Kembalikan Buku
+                                                </button>
                                             )}
+                                            {loan.StatusPeminjaman === 'Kembali' && (
+                                                <button
+                                                    onClick={() => handleUlasan(loan.BukuID, loan.Buku?.Judul)}
+                                                    className="bg-[#FF4081] text-white brutal-border-heavy px-8 py-4 font-black uppercase text-sm brutal-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2 active:bg-white active:text-black"
+                                                >
+                                                    <Star size={18} fill="currentColor" /> Kasih Ulasan
+                                                </button>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="text-[10px] font-black uppercase text-black/40 italic">
+                                            *Denda berlaku jika terlambat
                                         </div>
                                     </div>
                                 </div>
