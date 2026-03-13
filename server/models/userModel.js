@@ -61,6 +61,33 @@ class UserModel {
     static async delete(id) {
         return db.query("DELETE FROM user WHERE UserID = ?", [id]);
     }
+
+    // Cari user berdasarkan ID (untuk profil)
+    static async findById(id) {
+        const [rows] = await db.query(
+            "SELECT UserID, Username, Email, NamaLengkap, Alamat, FotoProfil, Role, Status FROM user WHERE UserID = ?",
+            [id]
+        );
+        return rows[0];
+    }
+
+    // Update profil (nama, email, alamat, foto)
+    static async updateProfile(id, { namaLengkap, email, alamat, fotoProfil }) {
+        let query = "UPDATE user SET NamaLengkap = ?, Email = ?, Alamat = ?";
+        let params = [namaLengkap, email, alamat];
+        if (fotoProfil !== undefined) {
+            query += ", FotoProfil = ?";
+            params.push(fotoProfil);
+        }
+        query += " WHERE UserID = ?";
+        params.push(id);
+        return db.query(query, params);
+    }
+
+    // Update password
+    static async updatePassword(id, hashedPassword) {
+        return db.query("UPDATE user SET Password = ? WHERE UserID = ?", [hashedPassword, id]);
+    }
 }
 
 module.exports = UserModel;

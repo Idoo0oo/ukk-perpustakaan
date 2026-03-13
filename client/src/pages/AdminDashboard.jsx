@@ -85,12 +85,12 @@ const AdminDashboard = () => {
                     transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
                     className="inline-block"
                 >
-                    <span className="mx-8 font-black uppercase text-sm tracking-widest">⚡ Admin Panel Aktif</span>
-                    <span className="mx-8 font-black uppercase text-sm tracking-widest">📚 Kelola Perpustakaan Sastra.in</span>
-                    <span className="mx-8 font-black uppercase text-sm tracking-widest">✅ Pastikan data buku selalu update!</span>
-                    <span className="mx-8 font-black uppercase text-sm tracking-widest">🔔 Cek permintaan peminjaman hari ini</span>
-                    <span className="mx-8 font-black uppercase text-sm tracking-widest">⚡ Admin Panel Aktif</span>
-                    <span className="mx-8 font-black uppercase text-sm tracking-widest">📚 Kelola Perpustakaan Sastra.in</span>
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Admin Panel Aktif</span>
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Kelola Perpustakaan Sastra.in</span>
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Pastikan data buku selalu update!</span>
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Cek permintaan peminjaman hari ini</span>
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Admin Panel Aktif</span>
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Kelola Perpustakaan Sastra.in</span>
                 </motion.div>
             </div>
 

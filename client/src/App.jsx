@@ -13,6 +13,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import DashboardSiswa from './pages/DashboardSiswa';
 import PinjamanSaya from './pages/PinjamanSaya';
 import KoleksiSaya from './pages/KoleksiSaya';
+import ProfilSiswa from './pages/ProfilSiswa';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
     const token = localStorage.getItem('token');
@@ -54,6 +55,12 @@ function App() {
                 <Route path="/peminjam/koleksi" element={
                     <ProtectedRoute allowedRole="peminjam">
                         <KoleksiSaya />
+                    </ProtectedRoute>
+                } />
+
+                <Route path="/peminjam/profil" element={
+                    <ProtectedRoute allowedRole="peminjam">
+                        <ProfilSiswa />
                     </ProtectedRoute>
                 } />
 

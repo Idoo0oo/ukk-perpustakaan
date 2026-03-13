@@ -18,6 +18,7 @@ CREATE TABLE user (
     Email VARCHAR(255) NOT NULL UNIQUE,
     NamaLengkap VARCHAR(255) NOT NULL,
     Alamat TEXT,
+    FotoProfil VARCHAR(255) DEFAULT NULL,       -- Foto profil user (opsional)
     Role ENUM('admin', 'peminjam') DEFAULT 'peminjam',
     Status ENUM('Menunggu', 'Aktif', 'Ditolak') DEFAULT 'Menunggu', -- Penting: Default Menunggu untuk Peminjam
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP

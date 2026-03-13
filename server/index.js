@@ -17,10 +17,12 @@ const ulasanRoutes = require('./routes/ulasanRoutes');
 const laporanRoutes = require('./routes/laporanRoutes');
 const userRoutes = require('./routes/userRoutes');
 const fiturRoutes = require('./routes/fiturRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/buku', bukuRoutes);
@@ -30,6 +32,7 @@ app.use('/api/ulasan', ulasanRoutes);
 app.use('/api/laporan', laporanRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/fitur', fiturRoutes);
+app.use('/api/profile', profileRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const PORT = process.env.PORT || 5000;

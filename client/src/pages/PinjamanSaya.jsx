@@ -6,9 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
     LayoutGrid, Heart, Book, LogOut, Info,
-    Calendar, Clock, CheckCircle, AlertCircle, Star, Send
+    Calendar, Clock, CheckCircle, AlertCircle, Star, Send, UserCircle
 } from 'lucide-react';
 import usePageTitle from '../hooks/usePageTitle';
+import useProfilePhoto from '../hooks/useProfilePhoto';
 
 const PinjamanSaya = () => {
     usePageTitle('Pinjaman Saya');
@@ -18,6 +19,7 @@ const PinjamanSaya = () => {
     const location = useLocation();
     const token = localStorage.getItem('token');
     const namaUser = localStorage.getItem('namaUser') || 'Siswa';
+    const { fotoUrl } = useProfilePhoto();
 
     const fetchLoans = async () => {
         try {
@@ -157,6 +159,7 @@ const PinjamanSaya = () => {
         { path: '/peminjam', name: 'Katalog', icon: <LayoutGrid size={22} /> },
         { path: '/peminjam/koleksi', name: 'Koleksi Saya', icon: <Heart size={22} /> },
         { path: '/peminjam/pinjaman-saya', name: 'Pinjaman Saya', icon: <Book size={22} /> },
+        { path: '/peminjam/profil', name: 'Profil', icon: <UserCircle size={22} /> },
     ];
 
     if (loading) return (
@@ -188,9 +191,14 @@ const PinjamanSaya = () => {
                         <p className="text-sm font-black uppercase leading-none">{namaUser}</p>
                         <p className="text-[10px] font-bold text-black/50 uppercase">PEMINJAM</p>
                     </div>
-                    <div className="w-12 h-12 bg-[#AEEA00] brutal-border brutal-shadow-sm flex items-center justify-center font-black text-xl">
-                        {namaUser.substring(0, 1).toUpperCase()}
-                    </div>
+                    <Link to="/peminjam/profil" className="w-12 h-12 brutal-border brutal-shadow-sm overflow-hidden hover:scale-105 transition-transform flex-shrink-0">
+                        {fotoUrl
+                            ? <img src={fotoUrl} alt="Profil" className="w-full h-full object-cover" />
+                            : <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="#9CA3AF"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                              </div>
+                        }
+                    </Link>
                 </div>
             </header>
 
