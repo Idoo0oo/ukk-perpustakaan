@@ -6,13 +6,11 @@ import { Users, Search, Trash2, MapPin, Mail, ShieldCheck } from 'lucide-react';
 const DataSiswa = () => {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState(''); // Fitur pencarian
+    const [searchTerm, setSearchTerm] = useState('');
     const token = localStorage.getItem('token');
 
-    // Ambil data user yang statusnya HANYA 'Aktif'
     const fetchActiveStudents = async () => {
         try {
-            // Filter ?status=Aktif ditambahkan di sini
             const res = await axios.get('http://localhost:5000/api/users?status=Aktif', {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -24,29 +22,26 @@ const DataSiswa = () => {
         }
     };
 
-    useEffect(() => {
-        fetchActiveStudents();
-    }, []);
+    useEffect(() => { fetchActiveStudents(); }, []);
 
-    // Fitur Hapus Anggota (CRUD - Delete)
     const handleDelete = async (id, nama) => {
         const result = await Swal.fire({
-            title: 'Hapus Anggota?',
-            text: `Anda yakin ingin menghapus "${nama}"? Data peminjaman terkait mungkin akan ikut terhapus atau error.`,
+            title: '<span class="font-black uppercase">Hapus Anggota?</span>',
+            text: `Anda yakin ingin menghapus "${nama}"?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
             confirmButtonText: 'Ya, Hapus',
-            cancelButtonText: 'Batal'
+            customClass: {
+                popup: 'brutal-border-heavy brutal-shadow font-mono',
+                confirmButton: 'bg-[#FF4081] text-white font-black uppercase brutal-border brutal-shadow-sm',
+                cancelButton: 'bg-white text-black font-black uppercase brutal-border brutal-shadow-sm'
+            }
         });
 
         if (result.isConfirmed) {
             try {
-                await axios.delete(`http://localhost:5000/api/users/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                Swal.fire('Terhapus!', 'Data anggota berhasil dihapus.', 'success');
+                await axios.delete(`http://localhost:5000/api/users/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+                Swal.fire({ icon: 'success', title: '<span class="font-black uppercase">Terhapus!</span>', timer: 1500, showConfirmButton: false });
                 fetchActiveStudents();
             } catch (err) {
                 Swal.fire('Gagal!', 'Gagal menghapus data anggota.', 'error');
@@ -54,115 +49,110 @@ const DataSiswa = () => {
         }
     };
 
-    // Filter Pencarian di sisi Client
     const filteredStudents = students.filter(student => 
         student.NamaLengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.Username.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className="p-6 min-h-screen">
-            {/* --- Header & Search --- */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="space-y-6">
+            {/* Header & Search */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <Users className="text-indigo-600" /> Data Anggota Perpustakaan
+                    <div className="inline-block bg-black text-white px-3 py-1 font-black text-[10px] uppercase tracking-widest mb-2">Data</div>
+                    <h2 className="text-4xl font-black uppercase leading-none tracking-tighter flex items-center gap-3">
+                        <Users size={32} /> Data Anggota
                     </h2>
-                    <p className="text-gray-500 text-sm mt-1">Daftar siswa yang sudah aktif dan terverifikasi.</p>
+                    <p className="font-bold uppercase text-black/50 text-xs mt-2">Daftar siswa yang sudah aktif dan terverifikasi.</p>
                 </div>
 
                 <div className="relative w-full md:w-72">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                        <Search size={18} />
-                    </span>
+                    <Search className="absolute left-3 top-3 text-black" size={18} />
                     <input 
                         type="text" 
-                        placeholder="Cari nama atau username..." 
-                        className="input input-bordered w-full pl-10 bg-white shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl"
+                        placeholder="CARI NAMA ATAU USERNAME..." 
+                        className="w-full pl-10 pr-4 py-2.5 bg-white brutal-border font-black uppercase text-xs focus:outline-none focus:bg-[#AEEA00] transition-colors placeholder:text-black/30"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
             </div>
 
-            {/* --- Stats Card Kecil --- */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div className="bg-emerald-100 p-3 rounded-lg text-emerald-600">
+            {/* Stats Card */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-[#00E5FF] brutal-border-heavy brutal-shadow p-4 flex items-center gap-4">
+                    <div className="bg-black p-3 brutal-border text-white">
                         <ShieldCheck size={24} />
                     </div>
                     <div>
-                        <p className="text-gray-500 text-xs font-bold uppercase">Total Anggota Aktif</p>
-                        <p className="text-xl font-bold text-gray-800">{students.length}</p>
+                        <p className="text-[10px] font-black uppercase">Total Anggota Aktif</p>
+                        <p className="text-3xl font-black">{students.length}</p>
                     </div>
                 </div>
             </div>
 
-            {/* --- Table Content --- */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Table */}
+            <div className="bg-white brutal-border-heavy brutal-shadow overflow-hidden">
                 {loading ? (
-                    <div className="p-10 text-center">
-                        <span className="loading loading-spinner loading-lg text-primary"></span>
-                        <p className="mt-2 text-gray-400">Memuat data anggota...</p>
+                    <div className="p-16 flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 border-8 border-black border-t-[#FFD600] animate-spin"></div>
+                        <p className="font-black uppercase text-sm">Memuat Data Anggota...</p>
                     </div>
                 ) : filteredStudents.length === 0 ? (
-                    <div className="p-10 text-center text-gray-500">
-                        <p>Tidak ada data anggota yang ditemukan.</p>
-                        {searchTerm && <p className="text-sm">Coba kata kunci pencarian lain.</p>}
+                    <div className="p-12 text-center font-black uppercase text-black/30">
+                        {searchTerm ? 'Anggota tidak ditemukan. Coba kata kunci lain.' : 'Tidak ada data anggota.'}
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-100">
-                                    <th className="p-5 font-semibold">No</th>
-                                    <th className="p-5 font-semibold">Profil Siswa</th>
-                                    <th className="p-5 font-semibold">Kontak</th>
-                                    <th className="p-5 font-semibold">Alamat</th>
-                                    <th className="p-5 font-semibold text-center">Aksi</th>
+                        <table className="w-full text-left font-mono">
+                            <thead className="bg-black text-white">
+                                <tr>
+                                    <th className="p-4 font-black uppercase text-xs">No</th>
+                                    <th className="p-4 font-black uppercase text-xs">Profil Siswa</th>
+                                    <th className="p-4 font-black uppercase text-xs">Kontak</th>
+                                    <th className="p-4 font-black uppercase text-xs">Alamat</th>
+                                    <th className="p-4 font-black uppercase text-xs text-center">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody>
                                 {filteredStudents.map((student, index) => (
-                                    <tr key={student.UserID} className="hover:bg-slate-50 transition-colors">
-                                        <td className="p-5 text-gray-400 font-medium w-16">{index + 1}</td>
+                                    <tr key={student.UserID} className="border-b-2 border-black/10 hover:bg-[#00E5FF]/20 transition-colors">
+                                        <td className="p-4 font-black text-black/40 text-sm w-16">{index + 1}</td>
                                         
                                         {/* Profil */}
-                                        <td className="p-5">
+                                        <td className="p-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="avatar placeholder">
-                                                    <div className="bg-indigo-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
-                                                        {student.NamaLengkap.charAt(0)}
-                                                    </div>
+                                                <div className="w-10 h-10 bg-[#AEEA00] brutal-border flex items-center justify-center font-black text-lg">
+                                                    {student.NamaLengkap.charAt(0)}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-gray-800">{student.NamaLengkap}</p>
-                                                    <p className="text-xs text-gray-500">@{student.Username}</p>
+                                                    <p className="font-black uppercase text-sm">{student.NamaLengkap}</p>
+                                                    <p className="text-[10px] font-bold text-black/50 uppercase">@{student.Username}</p>
                                                 </div>
                                             </div>
                                         </td>
 
                                         {/* Kontak */}
-                                        <td className="p-5 text-sm text-gray-600">
+                                        <td className="p-4 text-xs font-bold text-black/60">
                                             <div className="flex items-center gap-2">
-                                                <Mail size={14} className="text-gray-400" />
+                                                <Mail size={12} />
                                                 {student.Email}
                                             </div>
                                         </td>
 
                                         {/* Alamat */}
-                                        <td className="p-5 text-sm text-gray-600">
+                                        <td className="p-4 text-xs font-bold text-black/60">
                                             <div className="flex items-start gap-2 max-w-xs">
-                                                <MapPin size={14} className="text-gray-400 mt-1 min-w-[14px]" />
+                                                <MapPin size={12} className="mt-0.5 shrink-0" />
                                                 <span className="truncate">{student.Alamat || '-'}</span>
                                             </div>
                                         </td>
 
                                         {/* Aksi */}
-                                        <td className="p-5 text-center">
+                                        <td className="p-4 text-center">
                                             <button 
                                                 onClick={() => handleDelete(student.UserID, student.NamaLengkap)}
-                                                className="btn btn-sm btn-ghost text-red-500 hover:bg-red-50"
+                                                className="p-2 bg-white brutal-border hover:bg-[#FF4081] hover:text-white transition-colors mx-auto flex items-center justify-center"
                                                 title="Hapus Anggota"
                                             >
                                                 <Trash2 size={18} />

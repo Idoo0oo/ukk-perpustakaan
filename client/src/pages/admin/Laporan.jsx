@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Printer, FileText, Calendar, Filter, RotateCcw } from 'lucide-react';
+import { Printer, FileText, Calendar, RotateCcw } from 'lucide-react';
 import usePageTitle from '../../hooks/usePageTitle';
 
 const Laporan = () => {
@@ -8,23 +8,17 @@ const Laporan = () => {
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     
-    // State untuk Filter Tanggal (Default: Tanggal 1 bulan ini s/d Hari ini)
     const [dateRange, setDateRange] = useState({
         start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
         end: new Date().toISOString().split('T')[0]
     });
 
-    useEffect(() => {
-        fetchData();
-    }, []);
+    useEffect(() => { fetchData(); }, []);
 
     const fetchData = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/peminjaman', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            // Urutkan dari yang terbaru
+            const res = await axios.get('http://localhost:5000/api/peminjaman', { headers: { Authorization: `Bearer ${token}` } });
             const sortedData = res.data.sort((a, b) => new Date(b.TanggalPeminjaman) - new Date(a.TanggalPeminjaman));
             setTransactions(sortedData);
             setLoading(false);
@@ -34,16 +28,12 @@ const Laporan = () => {
         }
     };
 
-    // --- LOGIKA FILTERING ---
     const filteredTransactions = transactions.filter(item => {
-        // Ambil bagian tanggal saja (YYYY-MM-DD) dari data
         const tglPinjam = new Date(item.TanggalPeminjaman).toISOString().split('T')[0];
         return tglPinjam >= dateRange.start && tglPinjam <= dateRange.end;
     });
 
-    const handlePrint = () => {
-        window.print();
-    };
+    const handlePrint = () => { window.print(); };
 
     const handleReset = () => {
         setDateRange({
@@ -52,67 +42,71 @@ const Laporan = () => {
         });
     };
 
-    // Helper format tanggal indo
     const formatTanggalIndo = (dateStr) => {
         return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     };
 
+    const statusColors = {
+        'Dikembalikan': 'bg-[#AEEA00]',
+        'Dipinjam': 'bg-[#00E5FF]',
+        'Menunggu': 'bg-[#FFD600]',
+        'Ditolak': 'bg-[#FF4081] text-white',
+    };
+
     return (
-        <div className="p-6 min-h-screen bg-gray-50 text-gray-800">
-            {/* --- CSS KHUSUS PRINT --- */}
+        <div className="space-y-6">
+            {/* CSS untuk Print */}
             <style>{`
                 @media print {
                     body * { visibility: hidden; }
                     #printable-area, #printable-area * { visibility: visible; }
-                    #printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; color: black; }
-                    .no-print-style { box-shadow: none !important; border: none !important; }
+                    #printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; color: black; font-family: monospace; }
                     table { page-break-inside: auto; width: 100%; }
                     tr { page-break-inside: avoid; page-break-after: auto; }
                     thead { display: table-header-group; }
-                    tfoot { display: table-footer-group; }
-                    /* Sembunyikan elemen filter saat print */
                     .no-print { display: none !important; }
                 }
             `}</style>
 
-            {/* --- HEADER HALAMAN (WEB ONLY) --- */}
-            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4 no-print">
+            {/* --- HEADER (web only) --- */}
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 no-print">
                 <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-2">
-                        <FileText className="text-indigo-600" /> Laporan Perpustakaan
+                    <div className="inline-block bg-black text-white px-3 py-1 font-black text-[10px] uppercase tracking-widest mb-2">Export</div>
+                    <h2 className="text-4xl font-black uppercase leading-none tracking-tighter flex items-center gap-3">
+                        <FileText size={32} /> Laporan Perpustakaan
                     </h2>
-                    <p className="text-gray-500 text-sm">Rekapitulasi sirkulasi perpustakaan.</p>
+                    <p className="font-bold uppercase text-black/50 text-xs mt-2">Rekapitulasi sirkulasi perpustakaan.</p>
                 </div>
                 
-                {/* --- INPUT FILTER TANGGAL --- */}
-                <div className="flex flex-col md:flex-row gap-3 bg-white p-3 rounded-xl shadow-sm border border-gray-200 w-full xl:w-auto">
-                    <div className="flex items-center gap-2 border px-3 py-2 rounded-lg bg-gray-50">
-                        <Calendar size={16} className="text-gray-400"/>
-                        <span className="text-xs font-bold text-gray-500">Dari:</span>
+                {/* Filter Tanggal */}
+                <div className="flex flex-col md:flex-row gap-3 bg-white brutal-border-heavy brutal-shadow p-4 w-full xl:w-auto">
+                    <div className="flex items-center gap-2 brutal-border px-3 py-2 bg-[#FFFBEB]">
+                        <Calendar size={14} className="shrink-0" />
+                        <span className="text-[10px] font-black uppercase">Dari:</span>
                         <input 
                             type="date" 
                             value={dateRange.start} 
                             onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
-                            className="bg-transparent text-sm font-medium focus:outline-none text-gray-700"
+                            className="bg-transparent text-sm font-black focus:outline-none"
                         />
                     </div>
-                    <div className="flex items-center gap-2 border px-3 py-2 rounded-lg bg-gray-50">
-                        <Calendar size={16} className="text-gray-400"/>
-                        <span className="text-xs font-bold text-gray-500">Sampai:</span>
+                    <div className="flex items-center gap-2 brutal-border px-3 py-2 bg-[#FFFBEB]">
+                        <Calendar size={14} className="shrink-0" />
+                        <span className="text-[10px] font-black uppercase">Sampai:</span>
                         <input 
                             type="date" 
                             value={dateRange.end} 
                             onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
-                            className="bg-transparent text-sm font-medium focus:outline-none text-gray-700"
+                            className="bg-transparent text-sm font-black focus:outline-none"
                         />
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={handleReset} className="btn btn-square btn-ghost btn-sm border border-gray-200 text-gray-500" title="Reset Filter">
+                        <button onClick={handleReset} className="p-2 bg-white brutal-border hover:bg-[#FFD600] transition-colors" title="Reset Filter">
                             <RotateCcw size={16} />
                         </button>
                         <button 
                             onClick={handlePrint}
-                            className="btn bg-indigo-600 hover:bg-indigo-700 text-white btn-sm px-4 gap-2 border-none"
+                            className="flex items-center gap-2 px-6 py-2 bg-black text-white font-black uppercase text-xs brutal-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
                         >
                             <Printer size={16} /> Cetak
                         </button>
@@ -120,68 +114,61 @@ const Laporan = () => {
                 </div>
             </div>
 
-            {/* --- AREA YANG AKAN DICETAK --- */}
-            <div id="printable-area" className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 no-print-style">
+            {/* --- AREA CETAK --- */}
+            <div id="printable-area" className="bg-white brutal-border-heavy brutal-shadow p-8">
                 
-                {/* 1. KOP SURAT */}
-                <div className="mb-8 text-center border-b-2 border-gray-800 pb-6">
-                    <h1 className="text-3xl font-bold tracking-wide text-gray-900 mb-2">Sastra.in.</h1>
-                    <p className="text-gray-600 text-sm">Jl. Pendidikan No. 1, Kota Belajar, Indonesia | Telp: (021) 123-4567</p>
-                    <p className="text-gray-600 text-sm">Email: info@perpussekolah.sch.id | Website: www.perpussekolah.sch.id</p>
+                {/* KOP SURAT */}
+                <div className="mb-8 text-center border-b-4 border-black pb-6">
+                    <h1 className="text-4xl font-black uppercase tracking-tighter mb-1">
+                        Sastra<span className="bg-[#FFD600] px-1 border-2 border-black">.in</span>
+                    </h1>
+                    <p className="font-bold uppercase text-xs text-black/60">Jl. Pendidikan No. 1, Kota Belajar, Indonesia</p>
+                    <p className="font-bold uppercase text-xs text-black/60">Email: info@sastra.in | Website: www.sastra.in</p>
                 </div>
 
-                {/* 2. Info Laporan Dinamis */}
+                {/* Info Laporan */}
                 <div className="flex justify-between items-end mb-6">
                     <div>
-                        <h3 className="text-lg font-bold text-gray-800 uppercase underline decoration-2 underline-offset-4">Laporan Sirkulasi Buku</h3>
-                        {/* TANGGAL PERIODE SESUAI FILTER */}
-                        <p className="text-sm text-gray-700 mt-2 font-medium">
-                            Periode: <span className="font-bold">{formatTanggalIndo(dateRange.start)}</span> s/d <span className="font-bold">{formatTanggalIndo(dateRange.end)}</span>
+                        <div className="bg-black text-white px-3 py-1 font-black text-[10px] uppercase inline-block mb-2">Dokumen Resmi</div>
+                        <h3 className="text-2xl font-black uppercase underline underline-offset-4 decoration-4">Laporan Sirkulasi Buku</h3>
+                        <p className="text-sm font-bold uppercase text-black/70 mt-2">
+                            Periode: <span className="font-black">{formatTanggalIndo(dateRange.start)}</span> s/d <span className="font-black">{formatTanggalIndo(dateRange.end)}</span>
                         </p>
                     </div>
-                    <div className="text-right bg-gray-50 p-3 rounded-lg border border-gray-200 print:bg-transparent print:border-none">
-                        <p className="text-xs text-gray-500 uppercase font-semibold">Total Data</p>
-                        {/* JUMLAH DATA SESUAI FILTER */}
-                        <p className="text-xl font-bold text-indigo-600 print:text-black">{filteredTransactions.length} <span className="text-sm font-normal text-gray-500">Berkas</span></p>
+                    <div className="text-right bg-[#FFD600] brutal-border p-3 print:bg-transparent print:border-none">
+                        <p className="text-[10px] font-black uppercase">Total Data</p>
+                        <p className="text-3xl font-black">{filteredTransactions.length} <span className="text-xs font-bold">Berkas</span></p>
                     </div>
                 </div>
 
-                {/* 3. Tabel Data */}
+                {/* Tabel Data */}
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse font-mono">
                         <thead>
-                            <tr className="bg-gray-100 text-gray-700 text-xs uppercase tracking-wider border-y-2 border-gray-300 print:bg-gray-200 print:text-black">
-                                <th className="p-3 font-bold border-x border-gray-200 text-center w-10">No</th>
-                                <th className="p-3 font-bold border-x border-gray-200">Siswa</th>
-                                <th className="p-3 font-bold border-x border-gray-200">Judul Buku</th>
-                                <th className="p-3 font-bold border-x border-gray-200 text-center">Tgl Pinjam</th>
-                                <th className="p-3 font-bold border-x border-gray-200 text-center">Tgl Kembali</th>
-                                <th className="p-3 font-bold border-x border-gray-200 text-center">Status</th>
+                            <tr className="bg-black text-white text-xs uppercase">
+                                <th className="p-3 font-black border border-black text-center w-10">No</th>
+                                <th className="p-3 font-black border border-black">Siswa</th>
+                                <th className="p-3 font-black border border-black">Judul Buku</th>
+                                <th className="p-3 font-black border border-black text-center">Tgl Pinjam</th>
+                                <th className="p-3 font-black border border-black text-center">Tgl Kembali</th>
+                                <th className="p-3 font-black border border-black text-center">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="text-sm text-gray-700">
+                        <tbody className="text-sm">
                             {loading ? (
-                                <tr><td colSpan="6" className="p-8 text-center">Memuat data...</td></tr>
+                                <tr><td colSpan="6" className="p-8 text-center font-black uppercase">Memuat data...</td></tr>
                             ) : filteredTransactions.length === 0 ? (
-                                <tr><td colSpan="6" className="p-8 text-center italic text-gray-400">Tidak ada data pada periode ini.</td></tr>
+                                <tr><td colSpan="6" className="p-8 text-center font-black uppercase text-black/40">Tidak ada data pada periode ini.</td></tr>
                             ) : (
-                                // LOOPING DATA YANG SUDAH DIFILTER
                                 filteredTransactions.map((item, index) => (
-                                    <tr key={item.PeminjamanID} className="border-b border-gray-200 hover:bg-gray-50 print:hover:bg-transparent">
-                                        <td className="p-3 border-x border-gray-200 text-center">{index + 1}</td>
-                                        <td className="p-3 border-x border-gray-200 font-semibold">{item.NamaPeminjam || item.NamaLengkap}</td>
-                                        <td className="p-3 border-x border-gray-200 italic">{item.JudulBuku || item.Judul}</td>
-                                        <td className="p-3 border-x border-gray-200 text-center whitespace-nowrap">
-                                            {formatTanggalIndo(item.TanggalPeminjaman)}
-                                        </td>
-                                        <td className="p-3 border-x border-gray-200 text-center whitespace-nowrap">
-                                            {formatTanggalIndo(item.TanggalPengembalian)}
-                                        </td>
-                                        <td className="p-3 border-x border-gray-200 text-center">
-                                            <span className={`px-2 py-1 rounded text-xs font-bold border print:border-none print:px-0 
-                                                ${item.StatusPeminjaman === 'Dikembalikan' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 print:text-black print:bg-transparent' : 
-                                                  item.StatusPeminjaman === 'Dipinjam' ? 'bg-indigo-100 text-indigo-700 border-indigo-200 print:text-black print:bg-transparent' : 
-                                                  'bg-gray-100 text-gray-600 border-gray-200 print:text-black print:bg-transparent'}`}>
+                                    <tr key={item.PeminjamanID} className="border-b-2 border-black/10 hover:bg-[#FFD600]/10 print:hover:bg-transparent">
+                                        <td className="p-3 border border-black/20 text-center font-bold">{index + 1}</td>
+                                        <td className="p-3 border border-black/20 font-black uppercase text-xs">{item.NamaPeminjam || item.NamaLengkap}</td>
+                                        <td className="p-3 border border-black/20 font-bold text-xs">{item.JudulBuku || item.Judul}</td>
+                                        <td className="p-3 border border-black/20 text-center font-bold text-xs whitespace-nowrap">{formatTanggalIndo(item.TanggalPeminjaman)}</td>
+                                        <td className="p-3 border border-black/20 text-center font-bold text-xs whitespace-nowrap">{formatTanggalIndo(item.TanggalPengembalian)}</td>
+                                        <td className="p-3 border border-black/20 text-center">
+                                            <span className={`px-2 py-0.5 text-[10px] font-black uppercase border-2 border-black print:border-none print:bg-transparent ${statusColors[item.StatusPeminjaman] || 'bg-white'}`}>
                                                 {item.StatusPeminjaman}
                                             </span>
                                         </td>
@@ -192,17 +179,17 @@ const Laporan = () => {
                     </table>
                 </div>
 
-                {/* 4. Footer Tanda Tangan */}
-                <div className="mt-12 flex justify-end print:flex break-inside-avoid">
+                {/* Footer Tanda Tangan */}
+                <div className="mt-12 flex justify-end print:flex">
                     <div className="text-center w-64">
-                        <p className="text-sm text-gray-600 mb-16">
-                            Mengetahui,<br/>Kepala Perpustakaan
+                        <p className="text-sm font-bold uppercase text-black/70 mb-16">
+                            Mengetahui,<br />Kepala Perpustakaan
                         </p>
-                        <p className="font-bold underline decoration-dotted text-gray-800">( ....................................... )</p>
-                        <p className="text-xs text-gray-500 mt-1">NIP. 19850101 201001 1 001</p>
+                        <div className="border-b-4 border-black w-full"></div>
+                        <p className="font-black uppercase text-xs mt-2">( _________________________ )</p>
+                        <p className="text-[10px] font-bold text-black/50 mt-1 uppercase">NIP. 19850101 201001 1 001</p>
                     </div>
                 </div>
-
             </div>
         </div>
     );

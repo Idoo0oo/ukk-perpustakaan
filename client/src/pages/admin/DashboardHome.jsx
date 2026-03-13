@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { 
-    Book, Layers, Users, BellDot, BookOpen, Activity, ArrowRight
+    Book, Layers, Users, BellDot, BookOpen, Activity, ArrowRight, Zap
 } from 'lucide-react';
 import usePageTitle from '../../hooks/usePageTitle';
 
@@ -125,10 +125,10 @@ const DashboardHome = () => {
                 setChartData({
                     labels,
                     datasets: [
-                        { label: 'Dikembalikan', data: dataDikembalikan, backgroundColor: '#10b981', borderRadius: 4 },
-                        { label: 'Sedang Dipinjam', data: dataDipinjam, backgroundColor: '#6366f1', borderRadius: 4 },
-                        { label: 'Menunggu ACC', data: dataMenunggu, backgroundColor: '#f59e0b', borderRadius: 4 },
-                        { label: 'Ditolak', data: dataDitolak, backgroundColor: '#ef4444', borderRadius: 4 },
+                        { label: 'Dikembalikan', data: dataDikembalikan, backgroundColor: '#AEEA00', borderColor: '#000', borderWidth: 2, borderRadius: 0 },
+                        { label: 'Sedang Dipinjam', data: dataDipinjam, backgroundColor: '#00E5FF', borderColor: '#000', borderWidth: 2, borderRadius: 0 },
+                        { label: 'Menunggu ACC', data: dataMenunggu, backgroundColor: '#FFD600', borderColor: '#000', borderWidth: 2, borderRadius: 0 },
+                        { label: 'Ditolak', data: dataDitolak, backgroundColor: '#FF4081', borderColor: '#000', borderWidth: 2, borderRadius: 0 },
                     ],
                 });
                 setLoading(false);
@@ -144,114 +144,156 @@ const DashboardHome = () => {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } },
+            legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 10, font: { size: 11, family: 'monospace', weight: 'bold' } } },
             title: { display: false },
-            tooltip: { backgroundColor: 'rgba(17, 24, 39, 0.9)', padding: 10, cornerRadius: 8, displayColors: true }
+            tooltip: { backgroundColor: '#000', padding: 12, cornerRadius: 0, displayColors: true, titleFont: { family: 'monospace', weight: 'bold' }, bodyFont: { family: 'monospace' } }
         },
         scales: {
-            x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } },
-            y: { stacked: true, beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { stepSize: 1, font: { size: 11 } } },
+            x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11, family: 'monospace', weight: 'bold' } } },
+            y: { stacked: true, beginAtZero: true, grid: { color: '#000', lineWidth: 0.5 }, ticks: { stepSize: 1, font: { size: 11, family: 'monospace', weight: 'bold' } } },
         },
     };
 
     if (loading) return (
         <div className="p-10 text-center flex flex-col items-center justify-center h-96">
-            <span className="loading loading-spinner loading-lg text-primary"></span>
+            <div className="w-16 h-16 border-8 border-black border-t-[#FFD600] animate-spin"></div>
+            <p className="mt-4 font-black uppercase text-sm">Memuat Data...</p>
         </div>
     );
 
+    const statusColors = {
+        'Dipinjam': 'bg-[#00E5FF]',
+        'Dikembalikan': 'bg-[#AEEA00]',
+        'Ditolak': 'bg-[#FF4081]',
+        'Menunggu': 'bg-[#FFD600]',
+        'Menunggu Pengembalian': 'bg-[#FFD600]',
+    };
+
     return (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-            <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-600 rounded-3xl p-8 md:p-10 text-white shadow-2xl shadow-indigo-200">
-                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div>
-                        <h1 className="text-3xl font-bold mb-2 tracking-tight">Halo, Administrator</h1>
-                        <p className="text-indigo-100 text-lg max-w-xl leading-relaxed">
-                            {stats.menungguValidasi > 0 ? (
-                                <>Ada <span className="font-bold bg-white/20 px-2 py-0.5 rounded text-white">{stats.menungguValidasi} permintaan</span> yang membutuhkan persetujuanmu.</>
-                            ) : "Semua aman terkendali. Tidak ada permintaan tertunda."}
-                        </p>
+            
+            {/* HERO BANNER */}
+            <div className="bg-[#AEEA00] brutal-border-heavy brutal-shadow-lg p-8 md:p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                    <div className="inline-block bg-black text-white px-3 py-1 font-black text-[10px] uppercase tracking-widest mb-4">
+                        ⚡ Admin Panel
                     </div>
-                    <Link to="/admin/permintaan" className="btn bg-white text-indigo-600 border-none hover:bg-indigo-50 font-bold px-8 h-12 rounded-xl shadow-lg transition-transform hover:scale-105">
-                        Tinjau Sekarang
-                    </Link>
+                    <h1 className="text-3xl md:text-4xl font-black uppercase leading-tight tracking-tighter mb-2">
+                        Halo, <span className="bg-black text-white px-2">Administrator</span>
+                    </h1>
+                    <p className="font-black uppercase text-black/70 text-sm max-w-md leading-tight">
+                        {stats.menungguValidasi > 0 ? (
+                            <>Ada <span className="bg-[#FF4081] text-white px-1">{stats.menungguValidasi} permintaan</span> yang butuh persetujuanmu.</>
+                        ) : "Semua aman terkendali. Tidak ada permintaan tertunda."}
+                    </p>
                 </div>
-                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl"></div>
+                <Link to="/admin/permintaan" className="bg-black text-white px-8 py-4 font-black uppercase text-sm brutal-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2 shrink-0">
+                    Tinjau Sekarang <ArrowRight size={18} />
+                </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* STATS GRID */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {[
-                    { label: 'Total Koleksi', val: stats.totalBuku, icon: <Book size={24}/>, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
-                    { label: 'Anggota Aktif', val: stats.totalSiswa, icon: <Users size={24}/>, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
-                    { label: 'Sedang Dipinjam', val: stats.sedangDipinjam, icon: <BookOpen size={24}/>, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
-                    { label: 'Perlu Tindakan', val: stats.menungguValidasi, icon: <BellDot size={24}/>, color: 'text-pink-600', bg: 'bg-pink-50', border: 'border-pink-100' },
+                    { label: 'Total Koleksi', val: stats.totalBuku, icon: <Book size={24} />, color: 'bg-[#FFD600]' },
+                    { label: 'Anggota Aktif', val: stats.totalSiswa, icon: <Users size={24} />, color: 'bg-[#00E5FF]' },
+                    { label: 'Sedang Dipinjam', val: stats.sedangDipinjam, icon: <BookOpen size={24} />, color: 'bg-[#FF4081]' },
+                    { label: 'Perlu Tindakan', val: stats.menungguValidasi, icon: <BellDot size={24} />, color: 'bg-[#AEEA00]' },
                 ].map((item, idx) => (
-                    <div key={idx} className={`bg-white p-6 rounded-2xl border ${item.border} shadow-sm hover:shadow-lg transition-all duration-300 group`}>
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="text-gray-500 text-sm font-semibold mb-1 uppercase tracking-wider">{item.label}</p>
-                                <h3 className="text-3xl font-extrabold text-gray-800">{item.val}</h3>
-                            </div>
-                            <div className={`p-3.5 rounded-xl ${item.bg} ${item.color} group-hover:scale-110 transition-transform duration-300`}>
-                                {item.icon}
-                            </div>
+                    <div key={idx} className={`${item.color} brutal-border-heavy brutal-shadow p-6 group`}>
+                        <div className="bg-white brutal-border w-10 h-10 flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform">
+                            {item.icon}
                         </div>
+                        <h3 className="text-4xl font-black mb-1">{item.val}</h3>
+                        <p className="text-[10px] font-black uppercase tracking-wider text-black/60 leading-none">{item.label}</p>
                     </div>
                 ))}
             </div>
 
+            {/* CHART + POPULAR BOOKS */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                {/* Chart */}
+                <div className="lg:col-span-2 bg-white brutal-border-heavy brutal-shadow p-6">
                     <div className="flex justify-between items-center mb-6">
-                        <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2"><Layers className="text-indigo-500" /> Statistik Transaksi (7 Hari)</h3>
+                        <div>
+                            <span className="bg-black text-white px-2 py-0.5 font-black text-[10px] uppercase">Statistik</span>
+                            <h3 className="font-black uppercase text-lg mt-1 leading-none">Transaksi 7 Hari</h3>
+                        </div>
+                        <Layers size={24} className="opacity-30" />
                     </div>
                     <div className="h-64 w-full">
-                        {chartData.labels.length > 0 ? <Bar options={chartOptions} data={chartData} /> : <div className="h-full flex items-center justify-center text-gray-400 italic">Belum ada data transaksi.</div>}
+                        {chartData.labels.length > 0 
+                            ? <Bar options={chartOptions} data={chartData} /> 
+                            : <div className="h-full flex items-center justify-center font-black uppercase text-black/30 text-sm border-4 border-dashed border-black">Belum ada data transaksi.</div>
+                        }
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-                    <h3 className="font-bold text-lg text-gray-800 mb-6 flex items-center gap-2"><Activity className="text-orange-500" /> Sedang Populer</h3>
-                    <div className="space-y-4 flex-1">
-                        {popularBooks.length === 0 ? <div className="text-center py-8 text-gray-400 italic text-sm">Belum ada data.</div> : popularBooks.map((book, i) => (
-                            <div key={i} className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
-                                <div className={`font-bold text-lg w-8 h-8 flex items-center justify-center rounded-lg ${i === 0 ? 'bg-yellow-100 text-yellow-700' : i === 1 ? 'bg-gray-100 text-gray-600' : 'bg-orange-50 text-orange-600'}`}>#{i+1}</div>
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="font-bold text-gray-800 text-sm truncate" title={book.title}>{book.title}</h4>
-                                    <p className="text-xs text-gray-500 mt-0.5">Sering dipinjam</p>
-                                </div>
-                                <div className="text-xs font-bold bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-md border border-indigo-100">{book.count}x</div>
-                            </div>
-                        ))}
+                {/* Popular Books */}
+                <div className="bg-white brutal-border-heavy brutal-shadow p-6 flex flex-col">
+                    <div className="flex items-center gap-2 mb-6">
+                        <Activity size={20} />
+                        <h3 className="font-black uppercase text-lg leading-none">Buku Populer</h3>
                     </div>
-                    <Link to="/admin/buku" className="btn btn-outline btn-sm w-full mt-6 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border-gray-200 font-normal">
+                    <div className="space-y-3 flex-1">
+                        {popularBooks.length === 0 
+                            ? <div className="text-center py-8 font-black uppercase text-black/30 text-xs border-4 border-dashed border-black">Belum ada data.</div>
+                            : popularBooks.map((book, i) => (
+                                <div key={i} className="flex items-center gap-3 p-3 border-4 border-black hover:bg-[#FFD600] transition-colors group">
+                                    <div className={`font-black text-lg w-10 h-10 flex items-center justify-center border-2 border-black shrink-0 ${
+                                        i === 0 ? 'bg-[#FFD600]' : i === 1 ? 'bg-[#00E5FF]' : 'bg-[#AEEA00]'
+                                    }`}>#{i+1}</div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-black text-sm truncate uppercase" title={book.title}>{book.title}</h4>
+                                        <p className="text-[10px] font-bold uppercase text-black/50">Sering dipinjam</p>
+                                    </div>
+                                    <div className="bg-black text-white text-xs font-black px-2 py-1 shrink-0">{book.count}x</div>
+                                </div>
+                            ))
+                        }
+                    </div>
+                    <Link to="/admin/buku" className="mt-6 bg-black text-white px-4 py-3 font-black uppercase text-xs brutal-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-2">
                         Kelola Katalog <ArrowRight size={14} />
                     </Link>
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
-                    <h3 className="font-bold text-lg text-gray-800">Riwayat Transaksi Terakhir</h3>
-                    <Link to="/admin/riwayat" className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 hover:underline">Lihat Semua</Link>
+            {/* RECENT ACTIVITY TABLE */}
+            <div className="bg-white brutal-border-heavy brutal-shadow overflow-hidden">
+                <div className="p-6 border-b-4 border-black flex justify-between items-center bg-black text-white">
+                    <h3 className="font-black uppercase text-lg">Riwayat Transaksi Terakhir</h3>
+                    <Link to="/admin/riwayat" className="text-[#AEEA00] font-black uppercase text-xs hover:underline flex items-center gap-1">
+                        Lihat Semua <ArrowRight size={14} />
+                    </Link>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                            <tr><th className="p-5 font-semibold">Siswa</th><th className="p-5 font-semibold">Buku</th><th className="p-5 font-semibold">Status</th><th className="p-5 font-semibold text-right">Waktu Update</th></tr>
+                    <table className="w-full text-left text-sm font-mono">
+                        <thead className="bg-[#FFD600] border-b-4 border-black">
+                            <tr>
+                                <th className="p-4 font-black uppercase text-xs">Siswa</th>
+                                <th className="p-4 font-black uppercase text-xs">Buku</th>
+                                <th className="p-4 font-black uppercase text-xs">Status</th>
+                                <th className="p-4 font-black uppercase text-xs text-right">Waktu Update</th>
+                            </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {recentActivities.length === 0 ? <tr><td colSpan="4" className="p-8 text-center text-gray-400">Belum ada aktivitas.</td></tr> : recentActivities.map((row, i) => (
-                                <tr key={i} className="hover:bg-slate-50 transition-colors">
-                                    <td className="p-5 font-bold text-gray-800">{row.NamaPeminjam || row.NamaLengkap || 'User'}</td>
-                                    <td className="p-5 text-gray-600 font-medium">{row.JudulBuku || row.Judul || '-'}</td>
-                                    <td className="p-5"><span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${row.StatusPeminjaman === 'Dipinjam' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : row.StatusPeminjaman === 'Dikembalikan' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : row.StatusPeminjaman === 'Ditolak' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-orange-50 text-orange-700 border-orange-100'}`}>{row.StatusPeminjaman}</span></td>
-                                    <td className="p-5 text-right text-gray-400 text-xs font-medium">
-                                        {formatDate(getEffectiveDate(row))}
-                                    </td>
-                                </tr>
-                            ))}
+                        <tbody>
+                            {recentActivities.length === 0 
+                                ? <tr><td colSpan="4" className="p-8 text-center font-black uppercase text-black/40">Belum ada aktivitas.</td></tr>
+                                : recentActivities.map((row, i) => (
+                                    <tr key={i} className="border-b-2 border-black/10 hover:bg-[#AEEA00]/20 transition-colors">
+                                        <td className="p-4 font-black uppercase">{row.NamaPeminjam || row.NamaLengkap || 'User'}</td>
+                                        <td className="p-4 font-bold text-black/70 uppercase text-xs">{row.JudulBuku || row.Judul || '-'}</td>
+                                        <td className="p-4">
+                                            <span className={`px-2 py-0.5 brutal-border text-[10px] font-black uppercase ${statusColors[row.StatusPeminjaman] || 'bg-white'}`}>
+                                                {row.StatusPeminjaman}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 text-right font-bold text-xs text-black/50 uppercase">
+                                            {formatDate(getEffectiveDate(row))}
+                                        </td>
+                                    </tr>
+                                ))
+                            }
                         </tbody>
                     </table>
                 </div>

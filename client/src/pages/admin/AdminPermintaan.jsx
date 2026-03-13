@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { 
-    BookOpen, User, CheckCircle, XCircle, Clock, CalendarDays, 
+    BookOpen, CheckCircle, XCircle, Clock, CalendarDays, 
     ArrowRightLeft, BookUp, BookDown 
 } from 'lucide-react';
 
 const AdminPermintaan = () => {
-    const [borrowRequests, setBorrowRequests] = useState([]); // Data Peminjaman
-    const [returnRequests, setReturnRequests] = useState([]); // Data Pengembalian
-    const [activeTab, setActiveTab] = useState('borrow'); // 'borrow' atau 'return'
+    const [borrowRequests, setBorrowRequests] = useState([]);
+    const [returnRequests, setReturnRequests] = useState([]);
+    const [activeTab, setActiveTab] = useState('borrow');
     const [loading, setLoading] = useState(true);
     const token = localStorage.getItem('token');
 
@@ -18,7 +18,6 @@ const AdminPermintaan = () => {
         return new Date(dateString).toLocaleDateString('id-ID', options);
     };
 
-    // Fetch Data (Peminjaman & Pengembalian)
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -26,7 +25,6 @@ const AdminPermintaan = () => {
                 axios.get('http://localhost:5000/api/peminjaman/pending', { headers: { Authorization: `Bearer ${token}` } }),
                 axios.get('http://localhost:5000/api/peminjaman/return-requests', { headers: { Authorization: `Bearer ${token}` } })
             ]);
-            
             setBorrowRequests(resBorrow.data);
             setReturnRequests(resReturn.data);
         } catch (err) {
@@ -38,21 +36,24 @@ const AdminPermintaan = () => {
 
     useEffect(() => { fetchData(); }, []);
 
-    // --- LOGIKA PEMINJAMAN ---
     const handleApproveBorrow = async (id, judul, nama) => {
         const result = await Swal.fire({
-            title: 'Setujui Peminjaman?',
+            title: '<span class="font-black uppercase">Setujui Peminjaman?</span>',
             html: `Izinkan <b>${nama}</b> meminjam <br/> "<i>${judul}</i>"?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Ya, Setujui',
-            confirmButtonColor: '#10b981'
+            confirmButtonColor: '#AEEA00',
+            customClass: {
+                popup: 'brutal-border-heavy brutal-shadow font-mono',
+                confirmButton: 'bg-[#AEEA00] text-black font-black uppercase brutal-border brutal-shadow-sm',
+                cancelButton: 'bg-white text-black font-black uppercase brutal-border brutal-shadow-sm'
+            }
         });
-
         if (result.isConfirmed) {
             try {
                 await axios.put(`http://localhost:5000/api/peminjaman/${id}/approve`, {}, { headers: { Authorization: `Bearer ${token}` } });
-                Swal.fire('Sukses', 'Peminjaman disetujui!', 'success');
+                Swal.fire({ icon: 'success', title: '<span class="font-black uppercase">Berhasil!</span>', text: 'Peminjaman disetujui!', timer: 1500, showConfirmButton: false });
                 fetchData();
             } catch (err) { Swal.fire('Gagal', 'Terjadi kesalahan.', 'error'); }
         }
@@ -60,147 +61,129 @@ const AdminPermintaan = () => {
 
     const handleRejectBorrow = async (id) => {
         const result = await Swal.fire({
-            title: 'Tolak Peminjaman?',
+            title: '<span class="font-black uppercase">Tolak Peminjaman?</span>',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Ya, Tolak',
-            confirmButtonColor: '#ef4444'
+            customClass: {
+                popup: 'brutal-border-heavy brutal-shadow font-mono',
+                confirmButton: 'bg-[#FF4081] text-white font-black uppercase brutal-border brutal-shadow-sm',
+                cancelButton: 'bg-white text-black font-black uppercase brutal-border brutal-shadow-sm'
+            }
         });
-
         if (result.isConfirmed) {
             try {
                 await axios.put(`http://localhost:5000/api/peminjaman/${id}/reject`, {}, { headers: { Authorization: `Bearer ${token}` } });
-                Swal.fire('Ditolak', 'Permintaan ditolak.', 'success');
+                Swal.fire({ icon: 'success', title: '<span class="font-black uppercase">Ditolak!</span>', timer: 1500, showConfirmButton: false });
                 fetchData();
             } catch (err) { Swal.fire('Gagal', 'Terjadi kesalahan.', 'error'); }
         }
     };
 
-    // --- LOGIKA PENGEMBALIAN ---
     const handleConfirmReturn = async (id, judul, nama) => {
         const result = await Swal.fire({
-            title: 'Konfirmasi Pengembalian?',
+            title: '<span class="font-black uppercase">Konfirmasi Pengembalian?</span>',
             text: `Pastikan buku "${judul}" dari ${nama} sudah diterima fisiknya.`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Ya, Terima Buku',
-            confirmButtonColor: '#10b981' // Warna Emerald
+            customClass: {
+                popup: 'brutal-border-heavy brutal-shadow font-mono',
+                confirmButton: 'bg-[#AEEA00] text-black font-black uppercase brutal-border brutal-shadow-sm',
+                cancelButton: 'bg-white text-black font-black uppercase brutal-border brutal-shadow-sm'
+            }
         });
 
         if (result.isConfirmed) {
             try {
-                // Tampilkan Loading
                 Swal.showLoading();
-
-                // Panggil API Backend
                 const res = await axios.put(`http://localhost:5000/api/peminjaman/${id}/return`, {}, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-
-                // TANGKAP DATA DENDA DARI BACKEND
                 const { denda, terlambat } = res.data;
-
-                // Logika Alert Berdasarkan Denda
                 if (denda > 0) {
                     Swal.fire({
-                        title: 'TERLAMBAT!',
-                        html: `
-                            <div class="text-left bg-red-50 p-4 rounded-lg border border-red-200">
-                                <p class="mb-2 text-gray-700">Siswa ini terlambat <b>${terlambat} hari</b>.</p>
-                                <p class="text-xl font-bold text-red-600">Total Denda: Rp ${denda.toLocaleString('id-ID')}</p>
-                                <p class="text-xs text-gray-500 mt-2 italic">*Silakan tagih denda ke siswa sebelum klik Oke.</p>
-                            </div>
-                        `,
+                        title: '<span class="font-black uppercase">TERLAMBAT!</span>',
+                        html: `<div class="text-left bg-red-50 p-4 border-4 border-black font-mono">
+                            <p class="mb-2 font-bold uppercase text-sm">Terlambat <b>${terlambat} hari</b>.</p>
+                            <p class="text-xl font-black uppercase">Denda: Rp ${denda.toLocaleString('id-ID')}</p>
+                            <p class="text-xs font-bold uppercase mt-2 text-black/50">*Tagih denda sebelum klik Oke.</p>
+                        </div>`,
                         icon: 'warning',
-                        confirmButtonText: 'Oke, Mengerti'
+                        confirmButtonText: 'Oke, Mengerti',
+                        customClass: { popup: 'brutal-border-heavy brutal-shadow font-mono', confirmButton: 'bg-[#FF4081] text-white font-black uppercase brutal-border brutal-shadow-sm' }
                     });
                 } else {
-                    Swal.fire('Berhasil', 'Buku dikembalikan tepat waktu. Tidak ada denda.', 'success');
+                    Swal.fire({ icon: 'success', title: '<span class="font-black uppercase">Berhasil!</span>', text: 'Buku dikembalikan tepat waktu. Tidak ada denda.', timer: 2000, showConfirmButton: false });
                 }
-
-                fetchData(); // Refresh Tabel
+                fetchData();
             } catch (err) {
-                console.error(err);
                 Swal.fire('Gagal', err.response?.data?.message || 'Gagal memproses.', 'error');
             }
         }
     };
 
     return (
-        <div className="p-6 min-h-screen">
+        <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <ArrowRightLeft className="text-indigo-600" /> Pusat Transaksi
-                    </h2>
-                    <p className="text-gray-500 text-sm">Kelola permintaan masuk dan keluar buku.</p>
+            <div>
+                <div className="inline-block bg-black text-white px-3 py-1 font-black text-[10px] uppercase tracking-widest mb-2">
+                    Manajemen
                 </div>
+                <h2 className="text-4xl font-black uppercase leading-none tracking-tighter flex items-center gap-3">
+                    <ArrowRightLeft size={32} /> Pusat Transaksi
+                </h2>
+                <p className="font-bold uppercase text-black/50 text-xs mt-2">Kelola permintaan masuk dan keluar buku.</p>
             </div>
 
-            {/* Tabs Navigation */}
-            <div className="flex gap-4 border-b border-gray-200 mb-6">
+            {/* Tab Navigation */}
+            <div className="flex gap-3">
                 <button 
                     onClick={() => setActiveTab('borrow')}
-                    className={`pb-3 px-4 text-sm font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+                    className={`flex items-center gap-2 px-6 py-3 font-black uppercase text-sm brutal-border transition-all ${
                         activeTab === 'borrow' 
-                        ? 'border-indigo-600 text-indigo-600' 
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                        ? 'bg-black text-white brutal-shadow-sm' 
+                        : 'bg-white text-black hover:bg-[#FFD600]'
                     }`}
                 >
                     <BookUp size={18} /> Peminjaman Baru
                     {borrowRequests.length > 0 && (
-                        <span className="bg-orange-100 text-orange-600 text-xs px-2 py-0.5 rounded-full">{borrowRequests.length}</span>
+                        <span className="bg-[#FF4081] text-white text-[10px] px-2 py-0.5 font-black">{borrowRequests.length}</span>
                     )}
                 </button>
                 <button 
                     onClick={() => setActiveTab('return')}
-                    className={`pb-3 px-4 text-sm font-semibold flex items-center gap-2 transition-colors border-b-2 ${
+                    className={`flex items-center gap-2 px-6 py-3 font-black uppercase text-sm brutal-border transition-all ${
                         activeTab === 'return' 
-                        ? 'border-blue-600 text-blue-600' 
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                        ? 'bg-black text-white brutal-shadow-sm' 
+                        : 'bg-white text-black hover:bg-[#00E5FF]'
                     }`}
                 >
                     <BookDown size={18} /> Pengembalian Buku
                     {returnRequests.length > 0 && (
-                        <span className="bg-blue-100 text-blue-600 text-xs px-2 py-0.5 rounded-full">{returnRequests.length}</span>
+                        <span className="bg-[#00E5FF] text-black text-[10px] px-2 py-0.5 font-black">{returnRequests.length}</span>
                     )}
                 </button>
             </div>
 
-            {/* Content Area */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[300px]">
+            {/* Content */}
+            <div className="bg-white brutal-border-heavy brutal-shadow overflow-hidden min-h-[300px]">
                 {loading ? (
-                    <div className="p-10 text-center"><span className="loading loading-spinner text-primary"></span></div>
+                    <div className="p-16 flex flex-col items-center justify-center gap-4">
+                        <div className="w-12 h-12 border-8 border-black border-t-[#FFD600] animate-spin"></div>
+                        <p className="font-black uppercase text-sm">Memuat Data...</p>
+                    </div>
                 ) : (
                     <>
-                        {/* TAB 1: PEMINJAMAN BARU */}
                         {activeTab === 'borrow' && (
-                            borrowRequests.length === 0 ? (
-                                <EmptyState text="Tidak ada permintaan peminjaman baru." />
-                            ) : (
-                                <TableRequests 
-                                    data={borrowRequests} 
-                                    type="borrow" 
-                                    onApprove={handleApproveBorrow} 
-                                    onReject={handleRejectBorrow} 
-                                    formatDate={formatDate}
-                                />
-                            )
+                            borrowRequests.length === 0 
+                                ? <EmptyState text="Tidak ada permintaan peminjaman baru." />
+                                : <TableRequests data={borrowRequests} type="borrow" onApprove={handleApproveBorrow} onReject={handleRejectBorrow} formatDate={formatDate} />
                         )}
-
-                        {/* TAB 2: PENGEMBALIAN BUKU */}
                         {activeTab === 'return' && (
-                            returnRequests.length === 0 ? (
-                                <EmptyState text="Tidak ada pengajuan pengembalian buku." />
-                            ) : (
-                                <TableRequests 
-                                    data={returnRequests} 
-                                    type="return" 
-                                    onApprove={handleConfirmReturn} 
-                                    formatDate={formatDate}
-                                />
-                            )
+                            returnRequests.length === 0 
+                                ? <EmptyState text="Tidak ada pengajuan pengembalian buku." />
+                                : <TableRequests data={returnRequests} type="return" onApprove={handleConfirmReturn} formatDate={formatDate} />
                         )}
                     </>
                 )}
@@ -209,65 +192,66 @@ const AdminPermintaan = () => {
     );
 };
 
-// Sub-Component untuk Empty State
 const EmptyState = ({ text }) => (
-    <div className="p-16 text-center text-gray-400 flex flex-col items-center">
-        <div className="bg-gray-50 p-4 rounded-full mb-3"><BookOpen size={32} /></div>
-        <p>{text}</p>
+    <div className="p-16 text-center flex flex-col items-center gap-4">
+        <div className="bg-[#AEEA00] brutal-border p-4 w-16 h-16 flex items-center justify-center">
+            <BookOpen size={32} />
+        </div>
+        <p className="font-black uppercase text-sm">{text}</p>
     </div>
 );
 
-// Sub-Component untuk Tabel (Update: Menambahkan kolom Tgl Kembali)
 const TableRequests = ({ data, type, onApprove, onReject, formatDate }) => (
     <div className="overflow-x-auto">
-        <table className="w-full text-left">
-            <thead className="bg-gray-50 text-gray-600 text-xs uppercase font-semibold">
+        <table className="w-full text-left font-mono">
+            <thead className="bg-black text-white">
                 <tr>
-                    <th className="p-4">No</th>
-                    <th className="p-4">Buku</th>
-                    <th className="p-4">Siswa</th>
-                    <th className="p-4">Tgl Pinjam</th>
-                    {/* Header dinamis untuk tanggal kembali */}
-                    <th className="p-4">{type === 'borrow' ? 'Rencana Kembali' : 'Batas Kembali'}</th>
-                    <th className="p-4 text-center">Aksi</th>
+                    <th className="p-4 font-black uppercase text-xs">No</th>
+                    <th className="p-4 font-black uppercase text-xs">Buku</th>
+                    <th className="p-4 font-black uppercase text-xs">Siswa</th>
+                    <th className="p-4 font-black uppercase text-xs">Tgl Pinjam</th>
+                    <th className="p-4 font-black uppercase text-xs">{type === 'borrow' ? 'Rencana Kembali' : 'Batas Kembali'}</th>
+                    <th className="p-4 font-black uppercase text-xs text-center">Aksi</th>
                 </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody>
                 {data.map((item, idx) => (
-                    <tr key={item.PeminjamanID} className="hover:bg-slate-50">
-                        <td className="p-4 text-gray-400">{idx + 1}</td>
-                        <td className="p-4 font-bold text-gray-800">{item.JudulBuku}</td>
+                    <tr key={item.PeminjamanID} className="border-b-2 border-black/10 hover:bg-[#FFD600]/20 transition-colors">
+                        <td className="p-4 font-black text-black/40 text-sm">{idx + 1}</td>
+                        <td className="p-4 font-black uppercase text-sm">{item.JudulBuku}</td>
                         <td className="p-4">
                             <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
+                                <div className="w-8 h-8 bg-[#AEEA00] brutal-border flex items-center justify-center text-xs font-black">
                                     {item.NamaPeminjam?.charAt(0)}
                                 </div>
-                                <span className="text-sm">{item.NamaPeminjam}</span>
+                                <span className="text-sm font-bold uppercase">{item.NamaPeminjam}</span>
                             </div>
                         </td>
-                        {/* Kolom Tanggal Pinjam */}
-                        <td className="p-4 text-sm text-gray-600">
+                        <td className="p-4 text-sm font-bold uppercase text-black/60">
                             <div className="flex items-center gap-2">
-                                <CalendarDays size={14} className="text-gray-400"/>
+                                <CalendarDays size={14} />
                                 {formatDate(item.TanggalPeminjaman)}
                             </div>
                         </td>
-                        {/* Kolom Tanggal Kembali (Baru) */}
-                        <td className="p-4 text-sm text-gray-600">
-                            <div className="flex items-center gap-2">
-                                <CalendarDays size={14} className="text-orange-400"/>
+                        <td className="p-4 text-sm font-bold uppercase">
+                            <div className="flex items-center gap-2 text-[#FF4081]">
+                                <CalendarDays size={14} />
                                 {formatDate(item.TanggalPengembalian)}
                             </div>
                         </td>
                         <td className="p-4 text-center">
                             {type === 'borrow' ? (
                                 <div className="flex justify-center gap-2">
-                                    <button onClick={() => onApprove(item.PeminjamanID, item.JudulBuku, item.NamaPeminjam)} className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none"><CheckCircle size={14}/> Terima</button>
-                                    <button onClick={() => onReject(item.PeminjamanID)} className="btn btn-sm btn-ghost text-red-500 hover:bg-red-50"><XCircle size={14}/></button>
+                                    <button onClick={() => onApprove(item.PeminjamanID, item.JudulBuku, item.NamaPeminjam)} className="flex items-center gap-1 px-4 py-2 bg-[#AEEA00] brutal-border brutal-shadow-sm font-black uppercase text-xs hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all">
+                                        <CheckCircle size={14} /> Terima
+                                    </button>
+                                    <button onClick={() => onReject(item.PeminjamanID)} className="flex items-center gap-1 px-3 py-2 bg-white brutal-border brutal-shadow-sm font-black uppercase text-xs hover:bg-[#FF4081] hover:text-white transition-all">
+                                        <XCircle size={14} />
+                                    </button>
                                 </div>
                             ) : (
-                                <button onClick={() => onApprove(item.PeminjamanID, item.JudulBuku, item.NamaPeminjam)} className="btn btn-sm bg-blue-500 hover:bg-blue-600 text-white border-none w-full md:w-auto">
-                                    <CheckCircle size={14} className="mr-1"/> Konfirmasi
+                                <button onClick={() => onApprove(item.PeminjamanID, item.JudulBuku, item.NamaPeminjam)} className="flex items-center gap-1 px-4 py-2 bg-[#00E5FF] brutal-border brutal-shadow-sm font-black uppercase text-xs hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all mx-auto">
+                                    <CheckCircle size={14} /> Konfirmasi
                                 </button>
                             )}
                         </td>
