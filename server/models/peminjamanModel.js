@@ -84,6 +84,26 @@ class PeminjamanModel {
             [status, denda, tglReal, id]
         );
     }
+
+    // Ambil buku yang paling sering dipinjam dalam 7 hari terakhir
+    static async findMostBorrowedThisWeek() {
+        const query = `
+            SELECT 
+                b.BukuID, b.Judul, b.Penulis, b.Gambar,
+                GROUP_CONCAT(DISTINCT k.NamaKategori SEPARATOR ', ') AS NamaKategori,
+                COUNT(DISTINCT p.PeminjamanID) AS JumlahPinjam
+            FROM peminjaman p
+            JOIN buku b ON p.BukuID = b.BukuID
+            LEFT JOIN kategoribuku_relasi kr ON b.BukuID = kr.BukuID
+            LEFT JOIN kategoribuku k ON kr.KategoriID = k.KategoriID
+            WHERE p.TanggalPeminjaman >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            GROUP BY b.BukuID, b.Judul, b.Penulis, b.Gambar
+            ORDER BY JumlahPinjam DESC
+            LIMIT 1
+        `;
+        const [rows] = await db.query(query);
+        return rows[0] || null;
+    }
 }
 
 module.exports = PeminjamanModel;

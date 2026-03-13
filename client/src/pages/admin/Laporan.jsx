@@ -147,7 +147,7 @@ const Laporan = () => {
                         <thead>
                             <tr className="bg-black text-white text-xs uppercase">
                                 <th className="p-3 font-black border border-black text-center w-10">No</th>
-                                <th className="p-3 font-black border border-black">Siswa</th>
+                                <th className="p-3 font-black border border-black">Peminjam</th>
                                 <th className="p-3 font-black border border-black">Judul Buku</th>
                                 <th className="p-3 font-black border border-black text-center">Tgl Pinjam</th>
                                 <th className="p-3 font-black border border-black text-center">Tgl Kembali</th>

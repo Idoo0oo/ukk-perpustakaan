@@ -45,7 +45,7 @@ const HOW_IT_WORKS = [
 ];
 
 const TESTIMONIALS = [
-    { name: "Andi Saputra", role: "Siswa SMA", text: "Perpustakaan ini ngebantu banget buat ngerjain tugas sekolah. Koleksinya lengkap!", avatar: "https://i.pravatar.cc/150?u=andi" },
+    { name: "Andi Saputra", role: "Pelajar", text: "Perpustakaan ini ngebantu banget buat ngerjain tugas sekolah. Koleksinya lengkap!", avatar: "https://i.pravatar.cc/150?u=andi" },
     { name: "Siti Aminah", role: "Mahasiswa", text: "UI-nya keren banget, beda dari perpus digital lain. Smooth dan gampang dipake.", avatar: "https://i.pravatar.cc/150?u=siti" },
     { name: "Budi Santoso", role: "Guru", text: "sangat bagus, banyak pilihan buku dan bisa dipinjam oleh siapapun.", avatar: "https://i.pravatar.cc/150?u=budi" },
 ];

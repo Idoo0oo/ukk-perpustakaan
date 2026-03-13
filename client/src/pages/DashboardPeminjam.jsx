@@ -1,4 +1,4 @@
-// File: client/src/pages/DashboardSiswa.jsx
+// File: client/src/pages/DashboardPeminjam.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -12,8 +12,8 @@ import {
 import usePageTitle from '../hooks/usePageTitle';
 import useProfilePhoto from '../hooks/useProfilePhoto';
 
-const DashboardSiswa = () => {
-    usePageTitle('Dashboard Siswa');
+const DashboardPeminjam = () => {
+    usePageTitle('Dashboard Peminjam');
     const [books, setBooks] = useState([]);
     const [filteredBooks, setFilteredBooks] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -21,11 +21,14 @@ const DashboardSiswa = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [loading, setLoading] = useState(true);
     const [savedBookIds, setSavedBookIds] = useState([]);
+    const [mostBorrowedBook, setMostBorrowedBook] = useState(null);
+    const [loadingFeatured, setLoadingFeatured] = useState(true);
+    const [userStats, setUserStats] = useState({ dipinjam: 0, terlambat: 0 });
 
     const navigate = useNavigate();
     const location = useLocation();
     const token = localStorage.getItem('token');
-    const namaUser = localStorage.getItem('namaUser') || 'Siswa';
+    const namaUser = localStorage.getItem('namaUser') || 'Peminjam';
     const { fotoUrl } = useProfilePhoto();
 
     const fetchBooks = useCallback(async () => {
@@ -61,6 +64,22 @@ const DashboardSiswa = () => {
         }
     }, [token]);
 
+    const fetchUserStats = useCallback(async () => {
+        try {
+            const res = await axios.get('http://localhost:5000/api/peminjaman', { headers: { Authorization: `Bearer ${token}` } });
+            const dipinjam = res.data.filter(p => p.StatusPeminjaman === 'Dipinjam').length;
+            const terlambat = res.data.filter(p => {
+                if (p.StatusPeminjaman !== 'Dipinjam') return false;
+                const today = new Date(); today.setHours(0,0,0,0);
+                const deadline = new Date(p.TanggalPengembalian); deadline.setHours(0,0,0,0);
+                return today > deadline;
+            }).length;
+            setUserStats({ dipinjam, terlambat });
+        } catch (err) {
+            console.error("Error fetching stats:", err);
+        }
+    }, [token]);
+
     useEffect(() => {
         window.scrollTo(0, 0);
         const loadAllData = async () => {
@@ -68,12 +87,29 @@ const DashboardSiswa = () => {
             await Promise.all([
                 fetchBooks(),
                 fetchCategories(),
-                fetchSavedBooks()
+                fetchSavedBooks(),
+                fetchUserStats()
             ]);
             setLoading(false);
         };
         loadAllData();
-    }, [fetchBooks, fetchCategories, fetchSavedBooks]);
+    }, [fetchBooks, fetchCategories, fetchSavedBooks, fetchUserStats]);
+
+    useEffect(() => {
+        const fetchMostBorrowed = async () => {
+            try {
+                const res = await axios.get('http://localhost:5000/api/peminjaman/most-borrowed-week', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setMostBorrowedBook(res.data);
+            } catch (err) {
+                console.error('Error fetching most borrowed book:', err);
+            } finally {
+                setLoadingFeatured(false);
+            }
+        };
+        fetchMostBorrowed();
+    }, [token]);
 
     useEffect(() => {
         let result = books;
@@ -265,10 +301,10 @@ const DashboardSiswa = () => {
                 {/* --- STATS GRID --- */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
                     {[
-                        { label: 'Buku Dipinjam', value: '2', color: 'bg-[#AEEA00]', icon: <Book /> },
-                        { label: 'Buku Terlambat', value: '0', color: 'bg-[#FF4081]', icon: <Clock /> },
+                        { label: 'Buku Dipinjam', value: userStats.dipinjam, color: 'bg-[#AEEA00]', icon: <Book /> },
+                        { label: 'Buku Terlambat', value: userStats.terlambat, color: 'bg-[#FF4081]', icon: <Clock /> },
                         { label: 'Koleksi Saya', value: savedBookIds.length, color: 'bg-[#00E5FF]', icon: <Heart /> },
-                        { label: 'Point Literasi', value: '450', color: 'bg-[#FFD600]', icon: <Zap /> },
+                        { label: 'Point Literasi', value: '0', color: 'bg-[#FFD600]', icon: <Zap /> },
                     ].map((s, i) => (
                         <div key={i} className={`${s.color} brutal-border-heavy brutal-shadow p-6 group`}>
                             <div className="bg-white brutal-border w-10 h-10 flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform shadow-none">
@@ -282,19 +318,56 @@ const DashboardSiswa = () => {
 
                 {/* --- FEATURED SECTION --- */}
                 <div className="grid lg:grid-cols-2 gap-12 mb-24">
-                    <div className="bg-[#FFD600] brutal-border-heavy brutal-shadow-lg p-10 flex flex-col justify-between">
-                        <div>
-                            <span className="bg-black text-white px-3 py-1 font-black text-xs uppercase mb-6 inline-block">Book of the Week</span>
-                            <h2 className="text-4xl md:text-5xl font-black uppercase leading-none tracking-tighter mb-4">Filosofi Teras</h2>
-                            <p className="font-black uppercase text-black/60 mb-8 max-w-sm leading-tight">
-                                Belajar Stoikisme dengan cara yang asik dan relevan buat anak muda zaman sekarang.
-                            </p>
-                        </div>
-                        <div className="flex gap-4">
-                            <button className="bg-black text-white px-8 py-4 font-black uppercase text-lg brutal-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
-                                Pinjam Sekarang <ArrowRight size={20} />
-                            </button>
-                        </div>
+                    <div className="bg-[#FFD600] brutal-border-heavy brutal-shadow-lg flex flex-col overflow-hidden">
+                        {loadingFeatured ? (
+                            <div className="p-10 flex-1 flex flex-col justify-between animate-pulse">
+                                <div>
+                                    <div className="bg-black/20 h-6 w-36 mb-6"></div>
+                                    <div className="bg-black/20 h-10 w-3/4 mb-3"></div>
+                                    <div className="bg-black/20 h-4 w-full mb-2"></div>
+                                    <div className="bg-black/20 h-4 w-2/3"></div>
+                                </div>
+                                <div className="bg-black/20 h-14 w-48 mt-8"></div>
+                            </div>
+                        ) : mostBorrowedBook ? (
+                            <div className="flex flex-col md:flex-row flex-1">
+                                {/* Book cover */}
+                                <div className="w-full md:w-44 md:min-h-full bg-black/10 border-b-4 md:border-b-0 md:border-r-4 border-black shrink-0 overflow-hidden">
+                                    {mostBorrowedBook.Gambar
+                                        ? <img src={`http://localhost:5000/uploads/${mostBorrowedBook.Gambar}`} alt={mostBorrowedBook.Judul} className="w-full h-full object-cover" style={{minHeight:'180px'}} />
+                                        : <div className="w-full h-full flex items-center justify-center opacity-30" style={{minHeight:'180px'}}><Book size={60} /></div>
+                                    }
+                                </div>
+                                {/* Info */}
+                                <div className="p-8 flex flex-col justify-between flex-1">
+                                    <div>
+                                        <span className="bg-black text-white px-3 py-1 font-black text-xs uppercase mb-4 inline-block">Terpopuler Minggu Ini</span>
+                                        <h2 className="text-3xl md:text-4xl font-black uppercase leading-none tracking-tighter mb-2">{mostBorrowedBook.Judul}</h2>
+                                        <p className="font-black uppercase text-black/60 text-sm mb-1">{mostBorrowedBook.Penulis}</p>
+                                        {mostBorrowedBook.NamaKategori && (
+                                            <span className="inline-block bg-white brutal-border px-2 py-0.5 font-black text-[10px] uppercase mt-2 mb-4">{mostBorrowedBook.NamaKategori.split(', ')[0]}</span>
+                                        )}
+                                        <p className="font-black uppercase text-black/50 text-xs mt-3">
+                                            Dipinjam <span className="text-black text-lg">{mostBorrowedBook.JumlahPinjam}×</span> dalam 7 hari terakhir
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => handlePinjam(mostBorrowedBook.BukuID, mostBorrowedBook.Judul)}
+                                        className="mt-6 bg-black text-white px-8 py-4 font-black uppercase text-sm brutal-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2 self-start"
+                                    >
+                                        Pinjam Sekarang <ArrowRight size={18} />
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="p-10 flex-1 flex flex-col justify-center items-center text-center gap-4">
+                                <BookOpen size={48} className="opacity-30" />
+                                <span className="bg-black text-white px-3 py-1 font-black text-xs uppercase inline-block">Book of the Week</span>
+                                <p className="font-black uppercase text-black/50 text-sm max-w-xs leading-tight">
+                                    Belum ada data peminjaman minggu ini. Jadilah yang pertama!
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-6">
@@ -491,4 +564,4 @@ const DashboardSiswa = () => {
     );
 };
 
-export default DashboardSiswa;
+export default DashboardPeminjam;

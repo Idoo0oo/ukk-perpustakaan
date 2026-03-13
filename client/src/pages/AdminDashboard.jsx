@@ -12,7 +12,7 @@ import {
 // Import Halaman (Pages)
 import DashboardHome from './admin/DashboardHome';
 import KelolaBuku from './admin/KelolaBuku';
-import DataSiswa from './admin/DataSiswa';
+import DataPeminjam from './admin/DataPeminjam';
 import KelolaKategori from './admin/KelolaKategori';
 import AdminPermintaan from './admin/AdminPermintaan';
 import ValidasiPendaftaran from './admin/ValidasiPendaftaran';
@@ -65,7 +65,7 @@ const AdminDashboard = () => {
         { path: '/admin/buku', name: 'Buku', icon: <Book size={20} /> },
         { path: '/admin/kategori', name: 'Kategori', icon: <Layers size={20} /> },
         { path: '/admin/ulasan', name: 'Ulasan', icon: <MessageSquare size={20} /> },
-        { path: '/admin/siswa', name: 'Siswa', icon: <Users size={20} /> },
+        { path: '/admin/peminjam', name: 'Peminjam', icon: <Users size={20} /> },
         { path: '/admin/laporan', name: 'Laporan', icon: <FileText size={20} /> },
     ];
 
@@ -134,7 +134,7 @@ const AdminDashboard = () => {
                         <Route path="/buku" element={<KelolaBuku />} />
                         <Route path="/kategori" element={<KelolaKategori />} />
                         <Route path="/ulasan" element={<DataUlasan />} />
-                        <Route path="/siswa" element={<DataSiswa />} />
+                        <Route path="/peminjam" element={<DataPeminjam />} />
                         <Route path="/laporan" element={<Laporan />} />
                     </Routes>
                 </AnimatePresence>

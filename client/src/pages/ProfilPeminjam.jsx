@@ -11,7 +11,7 @@ import usePageTitle from '../hooks/usePageTitle';
 
 const API = 'http://localhost:5000/api';
 
-const ProfilSiswa = () => {
+const ProfilPeminjam = () => {
     usePageTitle('Profil Saya');
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
@@ -311,4 +311,4 @@ const ProfilSiswa = () => {
     );
 };
 
-export default ProfilSiswa;
+export default ProfilPeminjam;

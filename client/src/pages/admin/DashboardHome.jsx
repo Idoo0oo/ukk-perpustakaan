@@ -36,7 +36,7 @@ const DashboardHome = () => {
     usePageTitle('Dashboard Admin');
     const [stats, setStats] = useState({
         totalBuku: 0,
-        totalSiswa: 0,
+        totalPeminjam: 0,
         sedangDipinjam: 0,
         menungguValidasi: 0
     });
@@ -70,7 +70,7 @@ const DashboardHome = () => {
                 const token = localStorage.getItem('token');
                 const headers = { Authorization: `Bearer ${token}` };
 
-                const [resBuku, resSiswa, resPinjam] = await Promise.all([
+                const [resBuku, resPeminjam, resPinjam] = await Promise.all([
                     axios.get('http://localhost:5000/api/buku', { headers }),
                     axios.get('http://localhost:5000/api/users?status=Aktif', { headers }),
                     axios.get('http://localhost:5000/api/peminjaman', { headers })
@@ -80,7 +80,7 @@ const DashboardHome = () => {
 
                 setStats({
                     totalBuku: resBuku.data.length,
-                    totalSiswa: resSiswa.data.length,
+                    totalPeminjam: resPeminjam.data.length,
                     sedangDipinjam: dataPinjam.filter(p => p.StatusPeminjaman === 'Dipinjam').length,
                     menungguValidasi: dataPinjam.filter(p => p.StatusPeminjaman === 'Menunggu' || p.StatusPeminjaman === 'Menunggu Pengembalian').length
                 });
@@ -196,7 +196,7 @@ const DashboardHome = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {[
                     { label: 'Total Koleksi', val: stats.totalBuku, icon: <Book size={24} />, color: 'bg-[#FFD600]' },
-                    { label: 'Anggota Aktif', val: stats.totalSiswa, icon: <Users size={24} />, color: 'bg-[#00E5FF]' },
+                    { label: 'Anggota Aktif', val: stats.totalPeminjam, icon: <Users size={24} />, color: 'bg-[#00E5FF]' },
                     { label: 'Sedang Dipinjam', val: stats.sedangDipinjam, icon: <BookOpen size={24} />, color: 'bg-[#FF4081]' },
                     { label: 'Perlu Tindakan', val: stats.menungguValidasi, icon: <BellDot size={24} />, color: 'bg-[#AEEA00]' },
                 ].map((item, idx) => (
@@ -270,7 +270,7 @@ const DashboardHome = () => {
                     <table className="w-full text-left text-sm font-mono">
                         <thead className="bg-[#FFD600] border-b-4 border-black">
                             <tr>
-                                <th className="p-4 font-black uppercase text-xs">Siswa</th>
+                                <th className="p-4 font-black uppercase text-xs">Peminjam</th>
                                 <th className="p-4 font-black uppercase text-xs">Buku</th>
                                 <th className="p-4 font-black uppercase text-xs">Status</th>
                                 <th className="p-4 font-black uppercase text-xs text-right">Waktu Update</th>

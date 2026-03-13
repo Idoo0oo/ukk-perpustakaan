@@ -25,7 +25,7 @@ const ValidasiPendaftaran = () => {
 
     const handleVerify = async (id, nama) => {
         const result = await Swal.fire({
-            title: '<span class="font-black uppercase">Aktifkan Siswa?</span>',
+            title: '<span class="font-black uppercase">Aktifkan Peminjam?</span>',
             text: `Apakah Anda yakin ingin mengaktifkan akun "${nama}"?`,
             icon: 'question',
             showCancelButton: true,
@@ -86,12 +86,12 @@ const ValidasiPendaftaran = () => {
                     <div>
                         <div className="inline-block bg-black text-white px-2 py-0.5 font-black text-[10px] uppercase tracking-widest mb-1">Verifikasi</div>
                         <h2 className="text-3xl font-black uppercase leading-none tracking-tighter">Validasi Pendaftaran</h2>
-                        <p className="font-bold uppercase text-black/60 text-xs mt-1">Kelola siswa baru yang menunggu persetujuan akses.</p>
+                        <p className="font-bold uppercase text-black/60 text-xs mt-1">Kelola peminjam baru yang menunggu persetujuan akses.</p>
                     </div>
                 </div>
                 <div className="bg-black text-white px-4 py-2 brutal-border flex items-center gap-2 font-black uppercase text-sm shrink-0">
                     <Clock size={16} />
-                    Menunggu: {users.length} Siswa
+                    Menunggu: {users.length} Peminjam
                 </div>
             </div>
 
@@ -116,7 +116,7 @@ const ValidasiPendaftaran = () => {
                             <thead className="bg-black text-white">
                                 <tr>
                                     <th className="p-4 font-black uppercase text-xs">No</th>
-                                    <th className="p-4 font-black uppercase text-xs">Calon Siswa</th>
+                                    <th className="p-4 font-black uppercase text-xs">Calon Peminjam</th>
                                     <th className="p-4 font-black uppercase text-xs">Detail Akun</th>
                                     <th className="p-4 font-black uppercase text-xs text-center">Aksi</th>
                                 </tr>

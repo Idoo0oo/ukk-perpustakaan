@@ -10,10 +10,10 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
-import DashboardSiswa from './pages/DashboardSiswa';
+import DashboardPeminjam from './pages/DashboardPeminjam';
 import PinjamanSaya from './pages/PinjamanSaya';
 import KoleksiSaya from './pages/KoleksiSaya';
-import ProfilSiswa from './pages/ProfilSiswa';
+import ProfilPeminjam from './pages/ProfilPeminjam';
 
 const ProtectedRoute = ({ children, allowedRole }) => {
     const token = localStorage.getItem('token');
@@ -42,7 +42,7 @@ function App() {
 
                 <Route path="/peminjam" element={
                     <ProtectedRoute allowedRole="peminjam">
-                        <DashboardSiswa />
+                        <DashboardPeminjam />
                     </ProtectedRoute>
                 } />
 
@@ -60,7 +60,7 @@ function App() {
 
                 <Route path="/peminjam/profil" element={
                     <ProtectedRoute allowedRole="peminjam">
-                        <ProfilSiswa />
+                        <ProfilPeminjam />
                     </ProtectedRoute>
                 } />
 

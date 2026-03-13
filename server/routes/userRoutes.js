@@ -18,7 +18,7 @@ router.get('/', verifyToken, isAdmin, userController.getAllUsers);
 // Endpoint: /api/users/:id/verify
 router.put('/:id/verify', verifyToken, isAdmin, userController.verifyUser);
 
-// Hapus user (Tolak pendaftaran atau hapus siswa)
+// Hapus user (Tolak pendaftaran atau hapus peminjam)
 // Endpoint: /api/users/:id
 router.delete('/:id', verifyToken, isAdmin, userController.deleteUser);
 

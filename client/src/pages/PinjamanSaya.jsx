@@ -18,7 +18,7 @@ const PinjamanSaya = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const token = localStorage.getItem('token');
-    const namaUser = localStorage.getItem('namaUser') || 'Siswa';
+    const namaUser = localStorage.getItem('namaUser') || 'Peminjam';
     const { fotoUrl } = useProfilePhoto();
 
     const fetchLoans = async () => {
@@ -265,11 +265,26 @@ const PinjamanSaya = () => {
                                                 ID: #{loan.PeminjamanID}
                                             </span>
                                             <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                                                {loan.StatusPeminjaman === 'Dipinjam' ? (
-                                                    <span className="bg-white brutal-border border-red-500 text-red-500 px-3 py-1 flex items-center gap-1 animate-pulse">
-                                                        <AlertCircle size={14} /> SISA 5 HARI!
-                                                    </span>
-                                                ) : (
+                                                {loan.StatusPeminjaman === 'Dipinjam' ? (() => {
+                                                    const today = new Date(); today.setHours(0,0,0,0);
+                                                    const deadline = new Date(loan.TanggalPengembalian); deadline.setHours(0,0,0,0);
+                                                    const sisaHari = Math.ceil((deadline - today) / (1000 * 3600 * 24));
+                                                    if (sisaHari > 0) return (
+                                                        <span className="bg-white brutal-border border-red-500 text-red-500 px-3 py-1 flex items-center gap-1 animate-pulse">
+                                                            <AlertCircle size={14} /> SISA {sisaHari} HARI!
+                                                        </span>
+                                                    );
+                                                    if (sisaHari === 0) return (
+                                                        <span className="bg-[#FF4081] text-white brutal-border px-3 py-1 flex items-center gap-1 animate-pulse">
+                                                            <AlertCircle size={14} /> HARI INI!
+                                                        </span>
+                                                    );
+                                                    return (
+                                                        <span className="bg-[#FF4081] text-white brutal-border px-3 py-1 flex items-center gap-1 animate-pulse">
+                                                            <AlertCircle size={14} /> TERLAMBAT {Math.abs(sisaHari)} HARI!
+                                                        </span>
+                                                    );
+                                                })() : (
                                                     <span className="bg-white brutal-border border-[#AEEA00] text-[#AEEA00] px-3 py-1 flex items-center gap-1">
                                                         <CheckCircle size={14} /> SELESAI
                                                     </span>

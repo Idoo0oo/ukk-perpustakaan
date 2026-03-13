@@ -3,9 +3,9 @@ const router = express.Router();
 const peminjamanController = require('../controllers/peminjamanController');
 const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
 
-// Route Peminjam (Siswa)
+// Route Peminjam
 router.post('/', verifyToken, peminjamanController.pinjamBuku);
-router.get('/', verifyToken, peminjamanController.getAllPeminjaman); // Siswa lihat punya sendiri
+router.get('/', verifyToken, peminjamanController.getAllPeminjaman); // Peminjam lihat punya sendiri
 router.put('/:id/kembali', verifyToken, peminjamanController.ajukanPengembalian);
 
 // Route Admin (Approval & History)
@@ -13,6 +13,7 @@ router.put('/:id/kembali', verifyToken, peminjamanController.ajukanPengembalian)
 router.get('/pending', verifyToken, isAdmin, peminjamanController.getPeminjamanPending);
 router.get('/return-requests', verifyToken, isAdmin, peminjamanController.getPengembalianPending);
 router.get('/history', verifyToken, isAdmin, peminjamanController.getAllHistory);
+router.get('/most-borrowed-week', verifyToken, peminjamanController.getMostBorrowedThisWeek);
 
 // Aksi Admin
 router.put('/:id/approve', verifyToken, isAdmin, peminjamanController.approvePeminjaman);

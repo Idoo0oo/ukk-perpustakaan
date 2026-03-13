@@ -169,3 +169,13 @@ exports.getAllHistory = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// 10. Buku terpopuler minggu ini (untuk Dashboard Peminjam)
+exports.getMostBorrowedThisWeek = async (req, res) => {
+    try {
+        const data = await PeminjamanModel.findMostBorrowedThisWeek();
+        res.json(data); // null jika tidak ada data minggu ini
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

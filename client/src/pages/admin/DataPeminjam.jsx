@@ -3,7 +3,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Users, Search, Trash2, MapPin, Mail, ShieldCheck } from 'lucide-react';
 
-const DataSiswa = () => {
+const DataPeminjam = () => {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -63,7 +63,7 @@ const DataSiswa = () => {
                     <h2 className="text-4xl font-black uppercase leading-none tracking-tighter flex items-center gap-3">
                         <Users size={32} /> Data Anggota
                     </h2>
-                    <p className="font-bold uppercase text-black/50 text-xs mt-2">Daftar siswa yang sudah aktif dan terverifikasi.</p>
+                    <p className="font-bold uppercase text-black/50 text-xs mt-2">Daftar peminjam yang sudah aktif dan terverifikasi.</p>
                 </div>
 
                 <div className="relative w-full md:w-72">
@@ -108,7 +108,7 @@ const DataSiswa = () => {
                             <thead className="bg-black text-white">
                                 <tr>
                                     <th className="p-4 font-black uppercase text-xs">No</th>
-                                    <th className="p-4 font-black uppercase text-xs">Profil Siswa</th>
+                                    <th className="p-4 font-black uppercase text-xs">Profil Peminjam</th>
                                     <th className="p-4 font-black uppercase text-xs">Kontak</th>
                                     <th className="p-4 font-black uppercase text-xs">Alamat</th>
                                     <th className="p-4 font-black uppercase text-xs text-center">Aksi</th>
@@ -169,4 +169,4 @@ const DataSiswa = () => {
     );
 };
 
-export default DataSiswa;
+export default DataPeminjam;

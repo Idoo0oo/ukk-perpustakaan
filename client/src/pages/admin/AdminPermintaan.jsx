@@ -208,7 +208,7 @@ const TableRequests = ({ data, type, onApprove, onReject, formatDate }) => (
                 <tr>
                     <th className="p-4 font-black uppercase text-xs">No</th>
                     <th className="p-4 font-black uppercase text-xs">Buku</th>
-                    <th className="p-4 font-black uppercase text-xs">Siswa</th>
+                    <th className="p-4 font-black uppercase text-xs">Peminjam</th>
                     <th className="p-4 font-black uppercase text-xs">Tgl Pinjam</th>
                     <th className="p-4 font-black uppercase text-xs">{type === 'borrow' ? 'Rencana Kembali' : 'Batas Kembali'}</th>
                     <th className="p-4 font-black uppercase text-xs text-center">Aksi</th>

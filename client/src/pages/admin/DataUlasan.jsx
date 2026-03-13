@@ -77,13 +77,13 @@ const DataUlasan = () => {
                     <h2 className="text-4xl font-black uppercase leading-none tracking-tighter flex items-center gap-3">
                         <MessageSquare size={32} /> Ulasan Pembaca
                     </h2>
-                    <p className="font-bold uppercase text-black/50 text-xs mt-2">Pantau feedback dan rating dari siswa.</p>
+                    <p className="font-bold uppercase text-black/50 text-xs mt-2">Pantau feedback dan rating dari peminjam.</p>
                 </div>
                 <div className="relative w-full md:w-72">
                     <Search className="absolute left-3 top-3 text-black" size={18} />
                     <input 
                         type="text" 
-                        placeholder="CARI ULASAN, BUKU, SISWA..." 
+                        placeholder="CARI ULASAN, BUKU, PEMINJAM..." 
                         className="w-full pl-10 pr-4 py-2.5 bg-white brutal-border font-black uppercase text-xs focus:outline-none focus:bg-[#AEEA00] transition-colors placeholder:text-black/30"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}

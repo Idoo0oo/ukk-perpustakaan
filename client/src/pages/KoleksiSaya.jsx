@@ -12,7 +12,7 @@ const KoleksiSaya = () => {
     usePageTitle('Koleksi Saya');
     const [books, setBooks] = useState([]);
     const token = localStorage.getItem('token');
-    const namaUser = localStorage.getItem('namaUser') || 'Siswa';
+    const namaUser = localStorage.getItem('namaUser') || 'Peminjam';
     const { fotoUrl } = useProfilePhoto();
     const navigate = useNavigate();
     const location = useLocation();
