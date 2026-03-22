@@ -234,14 +234,17 @@ const DashboardPeminjam = () => {
             {/* --- ANNOUNCEMENT MARQUEE --- */}
             <div className="bg-black text-white py-2 overflow-hidden whitespace-nowrap relative z-40 border-b-4 border-black">
                 <motion.div
-                    animate={{ x: [0, -1000] }}
-                    transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+                    animate={{ x: [0, "-50%"] }}
+                    transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
                     className="inline-block"
                 >
                     <span className="mx-8 font-black uppercase text-sm tracking-widest">Perhatian: Perpustakaan tutup pada hari libur nasional!</span>
                     <span className="mx-8 font-black uppercase text-sm tracking-widest">Koleksi baru bulan Maret telah tersedia!</span>
                     <span className="mx-8 font-black uppercase text-sm tracking-widest">Ayo ulas buku yang sudah kamu baca untuk poin ekstra!</span>
+                    {/* Duplikasi untuk seamless loop */}
                     <span className="mx-8 font-black uppercase text-sm tracking-widest">Perhatian: Perpustakaan tutup pada hari libur nasional!</span>
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Koleksi baru bulan Maret telah tersedia!</span>
+                    <span className="mx-8 font-black uppercase text-sm tracking-widest">Ayo ulas buku yang sudah kamu baca untuk poin ekstra!</span>
                 </motion.div>
             </div>
 

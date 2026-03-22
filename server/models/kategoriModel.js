@@ -3,7 +3,7 @@ const db = require('../config/db');
 class KategoriModel {
     // 1. INI FUNGSI YANG HILANG (Penyebab Error)
     static async findAll() {
-        const [rows] = await db.query("SELECT * FROM kategoribuku");
+        const [rows] = await db.query("SELECT * FROM kategoribuku ORDER BY KategoriID DESC");
         return rows;
     }
 

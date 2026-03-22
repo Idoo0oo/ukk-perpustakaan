@@ -32,7 +32,7 @@ class PeminjamanModel {
             JOIN buku b ON p.BukuID = b.BukuID
             JOIN user u ON p.UserID = u.UserID
             ${whereClause}
-            ORDER BY p.TanggalPeminjaman ASC
+            ORDER BY p.TanggalPeminjaman DESC
         `;
         const [rows] = await db.query(query, params);
         return rows;
@@ -58,7 +58,7 @@ class PeminjamanModel {
 
     // Khusus Admin: Semua history transaksi selesai
     static async findAllHistory() {
-        return this._baseQuery("WHERE p.StatusPeminjaman IN ('Dikembalikan', 'Ditolak') ORDER BY p.PeminjamanID DESC");
+        return this._baseQuery("WHERE p.StatusPeminjaman IN ('Dikembalikan', 'Ditolak')");
     }
 
     // Update Status

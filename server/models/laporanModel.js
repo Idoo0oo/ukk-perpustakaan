@@ -15,7 +15,7 @@ class LaporanModel {
             JOIN user u ON p.UserID = u.UserID
             JOIN buku b ON p.BukuID = b.BukuID
             WHERE p.TanggalPeminjaman BETWEEN ? AND ?
-            ORDER BY p.TanggalPeminjaman ASC
+            ORDER BY p.TanggalPeminjaman DESC
         `;
         const [rows] = await db.query(query, [startDate, endDate]);
         return rows;

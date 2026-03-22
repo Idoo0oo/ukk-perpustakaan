@@ -110,16 +110,20 @@ const DashboardHome = () => {
 
                 last7Days.forEach(dayDate => {
                     const targetDateStr = format(dayDate, 'yyyy-MM-dd');
-                    const transaksiHariIni = dataPinjam.filter(p => {
-                        if (!p.TanggalPeminjaman) return false;
-                        const tglPinjamLokal = format(new Date(p.TanggalPeminjaman), 'yyyy-MM-dd');
-                        return tglPinjamLokal === targetDateStr;
-                    });
                     
-                    dataMenunggu.push(transaksiHariIni.filter(p => p.StatusPeminjaman === 'Menunggu').length);
-                    dataDipinjam.push(transaksiHariIni.filter(p => p.StatusPeminjaman === 'Dipinjam' || p.StatusPeminjaman === 'Menunggu Pengembalian').length);
-                    dataDikembalikan.push(transaksiHariIni.filter(p => p.StatusPeminjaman === 'Dikembalikan').length);
-                    dataDitolak.push(transaksiHariIni.filter(p => p.StatusPeminjaman === 'Ditolak').length);
+                    // Filter per status dengan tanggal yang relevan (Pinjam vs Kembali)
+                    const countStatus = (statusList, dateField) => {
+                        return dataPinjam.filter(p => 
+                            statusList.includes(p.StatusPeminjaman) && 
+                            p[dateField] && 
+                            format(new Date(p[dateField]), 'yyyy-MM-dd') === targetDateStr
+                        ).length;
+                    };
+                    
+                    dataMenunggu.push(countStatus(['Menunggu'], 'TanggalPeminjaman'));
+                    dataDipinjam.push(countStatus(['Dipinjam', 'Menunggu Pengembalian'], 'TanggalPeminjaman'));
+                    dataDikembalikan.push(countStatus(['Dikembalikan'], 'TanggalPengembalian'));
+                    dataDitolak.push(countStatus(['Ditolak'], 'TanggalPeminjaman'));
                 });
 
                 setChartData({
