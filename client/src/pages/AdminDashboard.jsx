@@ -105,10 +105,6 @@ const AdminDashboard = () => {
                         Sastra<span className="bg-[#FFD600] px-1 border-2 border-black ml-1">.in</span>
                     </span>
                     <div className="hidden md:flex items-center gap-2 ml-3 px-3 py-1 bg-black text-white brutal-border">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#AEEA00] opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#AEEA00]"></span>
-                        </span>
                         <span className="text-[10px] font-black tracking-widest uppercase text-[#AEEA00]">
                             Admin Panel
                         </span>
