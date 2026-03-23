@@ -150,7 +150,7 @@ const AdminDashboard = () => {
                         transition={{ duration: 0.25, ease: 'easeInOut' }}
                         className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-4 w-full flex justify-center"
                     >
-                        <nav className="flex items-center gap-1 p-2 bg-white brutal-border-heavy brutal-shadow-lg max-w-max overflow-x-auto scrollbar-hide">
+                        <nav className="flex items-center gap-1 p-2 bg-white brutal-border-heavy brutal-shadow-lg max-w-full overflow-x-auto scrollbar-hide">
                             
                             {menuItems.map((item) => {
                                 const isActive = location.pathname === item.path;

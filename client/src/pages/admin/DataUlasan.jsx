@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { MessageSquare, Star, Trash2, Search, User, Calendar } from 'lucide-react';
+import { ListSkeleton } from '../../components/Skeleton';
 
 const DataUlasan = () => {
     const [reviews, setReviews] = useState([]);
@@ -94,10 +95,7 @@ const DataUlasan = () => {
             {/* Reviews */}
             <div className="bg-white brutal-border-heavy brutal-shadow overflow-hidden">
                 {loading ? (
-                    <div className="p-16 flex flex-col items-center gap-4">
-                        <div className="w-12 h-12 border-8 border-black border-t-[#FFD600] animate-spin"></div>
-                        <p className="font-black uppercase text-sm">Memuat Ulasan...</p>
-                    </div>
+                    <ListSkeleton items={4} />
                 ) : filteredReviews.length === 0 ? (
                     <div className="p-16 text-center flex flex-col items-center gap-4">
                         <div className="bg-[#AEEA00] brutal-border p-4 w-16 h-16 flex items-center justify-center">

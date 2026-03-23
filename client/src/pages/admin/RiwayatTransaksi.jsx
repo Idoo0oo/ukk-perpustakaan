@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { History, Search, User, BookOpen } from 'lucide-react';
+import { TableSkeleton } from '../../components/Skeleton';
 
 const RiwayatTransaksi = () => {
     const [transactions, setTransactions] = useState([]);
@@ -103,68 +104,68 @@ const RiwayatTransaksi = () => {
 
             {/* Table */}
             <div className="bg-white brutal-border-heavy brutal-shadow overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left font-mono">
-                        <thead className="bg-black text-white">
-                            <tr>
-                                <th className="p-4 font-black uppercase text-xs">Peminjam</th>
-                                <th className="p-4 font-black uppercase text-xs">Buku</th>
-                                <th className="p-4 font-black uppercase text-xs">Tgl Pinjam</th>
-                                <th className="p-4 font-black uppercase text-xs">Tgl Kembali</th>
-                                <th className="p-4 font-black uppercase text-xs text-center">Status</th>
-                                <th className="p-4 font-black uppercase text-xs text-right">Denda</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr><td colSpan="6" className="p-12 text-center">
-                                    <div className="w-10 h-10 border-8 border-black border-t-[#FFD600] animate-spin mx-auto"></div>
-                                </td></tr>
-                            ) : filteredData.length === 0 ? (
-                                <tr><td colSpan="6" className="p-8 text-center font-black uppercase text-black/40">Data tidak ditemukan.</td></tr>
-                            ) : (
-                                filteredData.map((item) => (
-                                    <tr key={item.PeminjamanID} className="border-b-2 border-black/10 hover:bg-[#FFD600]/20 transition-colors">
-                                        <td className="p-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 bg-[#AEEA00] brutal-border flex items-center justify-center">
-                                                    <User size={14} />
+                {loading ? (
+                    <TableSkeleton rows={5} />
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left font-mono">
+                            <thead className="bg-black text-white">
+                                <tr>
+                                    <th className="p-4 font-black uppercase text-xs">Peminjam</th>
+                                    <th className="p-4 font-black uppercase text-xs">Buku</th>
+                                    <th className="p-4 font-black uppercase text-xs">Tgl Pinjam</th>
+                                    <th className="p-4 font-black uppercase text-xs">Tgl Kembali</th>
+                                    <th className="p-4 font-black uppercase text-xs text-center">Status</th>
+                                    <th className="p-4 font-black uppercase text-xs text-right">Denda</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredData.length === 0 ? (
+                                    <tr><td colSpan="6" className="p-8 text-center font-black uppercase text-black/40">Data tidak ditemukan.</td></tr>
+                                ) : (
+                                    filteredData.map((item) => (
+                                        <tr key={item.PeminjamanID} className="border-b-2 border-black/10 hover:bg-[#FFD600]/20 transition-colors">
+                                            <td className="p-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 bg-[#AEEA00] brutal-border flex items-center justify-center">
+                                                        <User size={14} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-black text-sm uppercase">{item.NamaPeminjam}</div>
+                                                        <div className="text-[10px] font-bold text-black/40 uppercase">ID: {item.UserID}</div>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <div className="font-black text-sm uppercase">{item.NamaPeminjam}</div>
-                                                    <div className="text-[10px] font-bold text-black/40 uppercase">ID: {item.UserID}</div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex items-center gap-2">
+                                                    <BookOpen size={14} className="text-black/40 shrink-0" />
+                                                    <span className="text-sm font-bold uppercase line-clamp-1 max-w-[150px]" title={item.JudulBuku}>{item.JudulBuku}</span>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="p-4">
-                                            <div className="flex items-center gap-2">
-                                                <BookOpen size={14} className="text-black/40 shrink-0" />
-                                                <span className="text-sm font-bold uppercase line-clamp-1 max-w-[150px]" title={item.JudulBuku}>{item.JudulBuku}</span>
-                                            </div>
-                                        </td>
-                                        <td className="p-4 text-xs font-bold text-black/60 uppercase">{formatDate(item.TanggalPeminjaman)}</td>
-                                        <td className="p-4 text-xs font-bold uppercase">{formatDate(item.TanggalPengembalian)}</td>
-                                        <td className="p-4 text-center">
-                                            <span className={`px-2 py-0.5 brutal-border text-[10px] font-black uppercase ${statusColors[item.StatusPeminjaman] || 'bg-white'}`}>
-                                                {item.StatusPeminjaman}
-                                            </span>
-                                        </td>
-                                        <td className="p-4 text-right">
-                                            {item.Denda > 0 ? (
-                                                <div className="flex flex-col items-end">
-                                                    <span className="bg-[#FF4081] text-white font-black text-xs px-2 py-1 brutal-border whitespace-nowrap">{formatRupiah(item.Denda)}</span>
-                                                    <span className="text-[10px] font-black uppercase text-[#FF4081] mt-1">Terlambat</span>
-                                                </div>
-                                            ) : (
-                                                <span className="text-black/30 text-sm font-black">-</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                            </td>
+                                            <td className="p-4 text-xs font-bold text-black/60 uppercase">{formatDate(item.TanggalPeminjaman)}</td>
+                                            <td className="p-4 text-xs font-bold uppercase">{formatDate(item.TanggalPengembalian)}</td>
+                                            <td className="p-4 text-center">
+                                                <span className={`px-2 py-0.5 brutal-border text-[10px] font-black uppercase ${statusColors[item.StatusPeminjaman] || 'bg-white'}`}>
+                                                    {item.StatusPeminjaman}
+                                                </span>
+                                            </td>
+                                            <td className="p-4 text-right">
+                                                {item.Denda > 0 ? (
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="bg-[#FF4081] text-white font-black text-xs px-2 py-1 brutal-border whitespace-nowrap">{formatRupiah(item.Denda)}</span>
+                                                        <span className="text-[10px] font-black uppercase text-[#FF4081] mt-1">Terlambat</span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-black/30 text-sm font-black">-</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
             <div className="text-center font-black uppercase text-xs text-black/40">
                 Menampilkan {filteredData.length} transaksi

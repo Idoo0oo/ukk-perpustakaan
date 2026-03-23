@@ -1,9 +1,8 @@
-// File: client/src/pages/admin/DashboardHome.jsx
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
+import { StatBoxSkeleton } from '../../components/Skeleton';
 import { 
     Book, Layers, Users, BellDot, BookOpen, Activity, ArrowRight, Zap
 } from 'lucide-react';
@@ -79,7 +78,7 @@ const DashboardHome = () => {
                 const dataPinjam = resPinjam.data;
 
                 setStats({
-                    totalBuku: resBuku.data.length,
+                    totalBuku: resBuku.data.pagination?.totalData || resBuku.data.data?.length || 0,
                     totalPeminjam: resPeminjam.data.length,
                     sedangDipinjam: dataPinjam.filter(p => p.StatusPeminjaman === 'Dipinjam').length,
                     menungguValidasi: dataPinjam.filter(p => p.StatusPeminjaman === 'Menunggu' || p.StatusPeminjaman === 'Menunggu Pengembalian').length
@@ -159,9 +158,14 @@ const DashboardHome = () => {
     };
 
     if (loading) return (
-        <div className="p-10 text-center flex flex-col items-center justify-center h-96">
-            <div className="w-16 h-16 border-8 border-black border-t-[#FFD600] animate-spin"></div>
-            <p className="mt-4 font-black uppercase text-sm">Memuat Data...</p>
+        <div className="p-6 md:p-12 space-y-12 font-mono">
+            <div>
+                <div className="h-10 w-64 bg-gray-300 animate-pulse brutal-border-heavy opacity-70 mb-2"></div>
+                <div className="h-4 w-48 bg-gray-300 animate-pulse brutal-border-heavy opacity-70"></div>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                {Array.from({ length: 4 }).map((_, i) => <StatBoxSkeleton key={i} />)}
+            </div>
         </div>
     );
 

@@ -26,17 +26,36 @@ const Register = () => {
             await axios.post('http://localhost:5000/api/auth/register', formData);
             Swal.fire({
                 icon: 'success',
-                title: 'Berhasil!',
-                text: 'Akun terdaftar, silakan tunggu konfirmasi dari Admin.',
-                confirmButtonColor: '#570df8'
+                title: '<span class="font-black uppercase">Berhasil!</span>',
+                html: '<div class="font-bold text-xs uppercase">Akun terdaftar, silakan tunggu konfirmasi Admin.</div>',
+                confirmButtonText: 'BAIKLAH',
+                customClass: { 
+                    popup: 'brutal-border-heavy brutal-shadow font-mono',
+                    confirmButton: 'bg-[#AEEA00] text-black font-black uppercase brutal-border brutal-shadow py-2 px-6' 
+                }
             });
             navigate('/');
         } catch (err) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Registrasi Gagal',
-                text: err.response?.data?.error || 'Terjadi kesalahan sistem'
-            });
+            if (err.response?.status === 400 && err.response?.data?.errors) {
+                const errorMsg = err.response.data.errors.map(e => `• ${e.message}`).join('<br/>');
+                Swal.fire({
+                    icon: 'error',
+                    title: '<span class="font-black uppercase text-sm">Validasi Gagal</span>',
+                    html: `<div class="text-left font-bold text-xs font-mono mt-2">${errorMsg}</div>`,
+                    customClass: { popup: 'brutal-border-heavy brutal-shadow' }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: '<span class="font-black uppercase">Registrasi Gagal</span>',
+                    html: `<div class="font-bold uppercase text-xs">${err.response?.data?.message || err.response?.data?.error || 'Terjadi kesalahan sistem'}</div>`,
+                    confirmButtonText: 'COBA LAGI',
+                    customClass: { 
+                        popup: 'brutal-border-heavy brutal-shadow font-mono',
+                        confirmButton: 'bg-[#FF4081] text-white font-black uppercase brutal-border brutal-shadow py-2 px-6' 
+                    }
+                });
+            }
         }
     };
 

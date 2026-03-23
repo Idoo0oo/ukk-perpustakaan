@@ -1,6 +1,7 @@
 const db = require('../config/db');
 
 class KoleksiModel {
+    // Menambahkan buku ke koleksi pribadi user
     static async add(userID, bukuID) {
         const [exist] = await db.query(
             "SELECT * FROM koleksipribadi WHERE UserID = ? AND BukuID = ?", 
@@ -15,6 +16,7 @@ class KoleksiModel {
         return true;
     }
 
+    // Mengambil daftar koleksi pribadi milik user
     static async findByUser(userID) {
         // PERHATIKAN: Tidak ada b.Deskripsi di sini
         const query = `
@@ -28,6 +30,7 @@ class KoleksiModel {
         return rows;
     }
 
+    // Menghapus buku dari koleksi pribadi user
     static async remove(userID, bukuID) {
         return db.query(
             "DELETE FROM koleksipribadi WHERE UserID = ? AND BukuID = ?", 
@@ -35,6 +38,7 @@ class KoleksiModel {
         );
     }
     
+    // Memeriksa apakah buku sudah ada di koleksi user (untuk disable tombol tambah)
     static async checkStatus(userID, bukuID) {
          const [rows] = await db.query(
             "SELECT KoleksiID FROM koleksipribadi WHERE UserID = ? AND BukuID = ?", 

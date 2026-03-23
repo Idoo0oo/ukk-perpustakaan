@@ -1,6 +1,7 @@
 const db = require('../config/db');
 
 class LaporanModel {
+    // Mengambil data laporan peminjaman berdasarkan rentang tanggal
     static async getPeminjamanByDateRange(startDate, endDate) {
         const query = `
             SELECT 

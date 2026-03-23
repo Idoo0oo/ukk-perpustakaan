@@ -6,6 +6,7 @@
 
 const UserModel = require('../models/userModel');
 
+// Mengambil semua data user dengan role peminjam
 exports.getAllUsers = async (req, res) => {
     try {
         const { status } = req.query;
@@ -18,6 +19,7 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
+// Memverifikasi dan mengaktifkan akun user
 exports.verifyUser = async (req, res) => {
     const { id } = req.params;
     try {
@@ -29,6 +31,7 @@ exports.verifyUser = async (req, res) => {
     }
 };
 
+// Menghapus data akun user
 exports.deleteUser = async (req, res) => {
     const { id } = req.params;
     try {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { CheckCircle, XCircle, UserCheck, UserX, Clock } from 'lucide-react';
+import { TableSkeleton } from '../../components/Skeleton';
 
 const ValidasiPendaftaran = () => {
     const [users, setUsers] = useState([]);
@@ -98,10 +99,7 @@ const ValidasiPendaftaran = () => {
             {/* Table */}
             <div className="bg-white brutal-border-heavy brutal-shadow overflow-hidden">
                 {loading ? (
-                    <div className="p-16 flex flex-col items-center justify-center gap-4">
-                        <div className="w-12 h-12 border-8 border-black border-t-[#FFD600] animate-spin"></div>
-                        <p className="font-black uppercase text-sm">Memuat Data...</p>
-                    </div>
+                    <TableSkeleton rows={5} />
                 ) : users.length === 0 ? (
                     <div className="p-16 text-center flex flex-col items-center gap-4">
                         <div className="bg-[#AEEA00] brutal-border p-4 w-16 h-16 flex items-center justify-center">

@@ -6,6 +6,7 @@
 
 const UlasanModel = require('../models/ulasanModel');
 
+// Menambahkan ulasan baru untuk buku
 exports.addUlasan = async (req, res) => {
     const { bukuID, ulasan, rating } = req.body;
     const userID = req.user.id;
@@ -21,6 +22,7 @@ exports.addUlasan = async (req, res) => {
     }
 };
 
+// Mengambil semua ulasan berdasarkan ID buku
 exports.getUlasanByBuku = async (req, res) => {
     try {
         const ulasan = await UlasanModel.findByBukuId(req.params.bukuID);
@@ -30,6 +32,7 @@ exports.getUlasanByBuku = async (req, res) => {
     }
 };
 
+// Mengambil semua ulasan dari semua buku (untuk dashboard Admin)
 exports.getAllUlasan = async (req, res) => {
     try {
         const ulasan = await UlasanModel.findAll();
@@ -39,6 +42,7 @@ exports.getAllUlasan = async (req, res) => {
     }
 };
 
+// Menghapus ulasan berdasarkan ID
 exports.deleteUlasan = async (req, res) => {
     const { id } = req.params;
     try {

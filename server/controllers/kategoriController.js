@@ -1,6 +1,6 @@
 const KategoriModel = require('../models/kategoriModel');
 
-// Pastikan nama fungsinya sama persis dengan yang dipanggil di route
+// Mengambil semua data kategori buku
 exports.getAllKategori = async (req, res) => {
     try {
         const kategori = await KategoriModel.findAll();
@@ -10,6 +10,7 @@ exports.getAllKategori = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+// Mengambil data kategori berdasarkan ID
 exports.getKategoriById = async (req, res) => { // Tambahkan ini jika belum ada
     const { id } = req.params;
     try {
@@ -21,6 +22,7 @@ exports.getKategoriById = async (req, res) => { // Tambahkan ini jika belum ada
     }
 };
 
+// Menambahkan kategori buku baru
 exports.createKategori = async (req, res) => {
     const { namaKategori } = req.body;
     if (!namaKategori) return res.status(400).json({ message: "Nama kategori wajib diisi!" });
@@ -33,6 +35,7 @@ exports.createKategori = async (req, res) => {
     }
 };
 
+// Memperbarui nama kategori buku
 exports.updateKategori = async (req, res) => {
     const { id } = req.params;
     const { namaKategori } = req.body;
@@ -48,6 +51,7 @@ exports.updateKategori = async (req, res) => {
     }
 };
 
+// Menghapus kategori buku beserta pengecekan relasi
 exports.deleteKategori = async (req, res) => {
     try {
         await KategoriModel.delete(req.params.id);

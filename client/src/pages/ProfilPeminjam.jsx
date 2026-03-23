@@ -126,11 +126,22 @@ const ProfilPeminjam = () => {
             : null;
 
     if (loading) return (
-        <div className="min-h-screen bg-[#FFFBEB] flex items-center justify-center font-mono">
-            <div className="text-center">
-                <div className="w-16 h-16 border-8 border-black border-t-[#FFD600] animate-spin mx-auto"></div>
-                <p className="mt-4 font-black uppercase text-sm">Memuat Profil...</p>
-            </div>
+        <div className="min-h-screen bg-[#FFFBEB] font-mono text-black">
+            <header className="h-20 bg-white border-b-4 border-black flex items-center justify-between px-6 md:px-12 sticky top-0 z-50">
+                <div className="flex items-center gap-2">
+                    <div className="h-10 w-32 bg-gray-300 animate-pulse brutal-border-heavy opacity-70"></div>
+                </div>
+            </header>
+            <main className="max-w-4xl mx-auto px-6 py-10 space-y-8">
+                <div className="h-12 w-64 bg-gray-300 animate-pulse brutal-border-heavy opacity-70 mb-8"></div>
+                <div className="grid md:grid-cols-3 gap-8 items-start">
+                    <div className="bg-gray-300 animate-pulse brutal-border-heavy opacity-70 h-80 md:sticky md:top-28"></div>
+                    <div className="md:col-span-2 space-y-8">
+                        <div className="bg-gray-300 animate-pulse brutal-border-heavy opacity-70 h-96"></div>
+                        <div className="bg-gray-300 animate-pulse brutal-border-heavy opacity-70 h-80"></div>
+                    </div>
+                </div>
+            </main>
         </div>
     );
 

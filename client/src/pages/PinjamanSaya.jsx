@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import usePageTitle from '../hooks/usePageTitle';
 import useProfilePhoto from '../hooks/useProfilePhoto';
+import { ListSkeleton } from '../components/Skeleton';
 
 const PinjamanSaya = () => {
     usePageTitle('Pinjaman Saya');
@@ -163,9 +164,18 @@ const PinjamanSaya = () => {
     ];
 
     if (loading) return (
-        <div className="flex flex-col min-h-screen bg-[#FFFBEB] items-center justify-center font-mono">
-            <div className="w-16 h-16 border-8 border-black border-t-[#FFD600] animate-spin"></div>
-            <p className="mt-4 font-black uppercase">Memuat Pinjaman...</p>
+        <div className="flex flex-col min-h-screen bg-[#FFFBEB] font-mono text-black relative">
+            <header className="h-20 bg-white border-b-4 border-black flex items-center justify-between px-6 md:px-12 sticky top-0 z-50">
+                <div className="text-2xl font-black uppercase tracking-tighter">Sastra<span className="bg-[#FFD600] px-1 border-2 border-black ml-1">.in</span></div>
+            </header>
+            <main className="flex-1 w-full max-w-7xl mx-auto px-6 md:px-12 pt-12 pb-32">
+                <div className="mb-12">
+                    <h1 className="text-5xl md:text-7xl font-black uppercase leading-[0.9] tracking-tighter mb-4">
+                        Pinjaman <span className="bg-[#00E5FF] px-3 rotate-1 inline-block my-1 brutal-border-heavy">Saya.</span>
+                    </h1>
+                </div>
+                {Array.from({ length: 3 }).map((_, i) => <ListSkeleton key={i} />)}
+            </main>
         </div>
     );
 
@@ -341,7 +351,7 @@ const PinjamanSaya = () => {
 
             {/* --- FLOATING NAVBAR BAWAH --- */}
             <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 px-4 w-full flex justify-center">
-                <nav className="flex items-center gap-2 p-2 bg-white brutal-border-heavy brutal-shadow-lg max-w-max overflow-x-auto scrollbar-hide">
+                <nav className="flex items-center gap-2 p-2 bg-white brutal-border-heavy brutal-shadow-lg max-w-full overflow-x-auto scrollbar-hide">
                     {menuItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         return (

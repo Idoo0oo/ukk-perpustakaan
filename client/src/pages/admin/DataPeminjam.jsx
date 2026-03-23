@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Users, Search, Trash2, MapPin, Mail, ShieldCheck } from 'lucide-react';
+import { TableSkeleton } from '../../components/Skeleton';
 
 const DataPeminjam = () => {
     const [students, setStudents] = useState([]);
@@ -94,10 +95,7 @@ const DataPeminjam = () => {
             {/* Table */}
             <div className="bg-white brutal-border-heavy brutal-shadow overflow-hidden">
                 {loading ? (
-                    <div className="p-16 flex flex-col items-center gap-4">
-                        <div className="w-12 h-12 border-8 border-black border-t-[#FFD600] animate-spin"></div>
-                        <p className="font-black uppercase text-sm">Memuat Data Anggota...</p>
-                    </div>
+                    <TableSkeleton rows={5} />
                 ) : filteredStudents.length === 0 ? (
                     <div className="p-12 text-center font-black uppercase text-black/30">
                         {searchTerm ? 'Anggota tidak ditemukan. Coba kata kunci lain.' : 'Tidak ada data anggota.'}

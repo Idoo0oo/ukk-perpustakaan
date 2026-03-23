@@ -2,15 +2,38 @@ const BukuModel = require('../models/bukuModel');
 const fs = require('fs');
 const path = require('path');
 
+// Mengambil semua data buku dari database dengan Server-Side Pagination
 exports.getAllBuku = async (req, res) => {
     try {
-        const buku = await BukuModel.findAll();
-        res.json(buku);
+        // Ambil parameter dari frontend (default page 1, limit 10)
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        // Eksekusi query data buku dan jumlah total secara paralel
+        const [buku, totalData] = await Promise.all([
+            BukuModel.findAll(limit, offset),
+            BukuModel.countAll()
+        ]);
+
+        const totalPages = Math.ceil(totalData / limit);
+
+        // Balikan Struktur JSON Pagination
+        res.json({
+            data: buku,
+            pagination: {
+                totalData,
+                currentPage: page,
+                totalPages,
+                limit
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
+// Mengambil detail buku berdasarkan ID
 exports.getBukuById = async (req, res) => {
     try {
         const buku = await BukuModel.findById(req.params.id);
@@ -21,6 +44,7 @@ exports.getBukuById = async (req, res) => {
     }
 };
 
+// Menambahkan buku baru peserta relasi kategorinya
 exports.createBuku = async (req, res) => {
     try {
         const { judul, penulis, penerbit, tahunTerbit, stok, kategoriIds } = req.body;
@@ -41,6 +65,7 @@ exports.createBuku = async (req, res) => {
     }
 };
 
+// Memperbarui data buku dan mengganti gambar jika ada file baru
 exports.updateBuku = async (req, res) => {
     const { id } = req.params;
     try {
@@ -68,6 +93,7 @@ exports.updateBuku = async (req, res) => {
     }
 };
 
+// Menghapus buku beserta file gambar fisiknya
 exports.deleteBuku = async (req, res) => {
     try {
         const book = await BukuModel.findById(req.params.id);

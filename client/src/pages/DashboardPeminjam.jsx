@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import usePageTitle from '../hooks/usePageTitle';
 import useProfilePhoto from '../hooks/useProfilePhoto';
+import { BookCardSkeleton, StatBoxSkeleton } from '../components/Skeleton';
 
 const DashboardPeminjam = () => {
     usePageTitle('Dashboard Peminjam');
@@ -24,6 +25,9 @@ const DashboardPeminjam = () => {
     const [mostBorrowedBook, setMostBorrowedBook] = useState(null);
     const [loadingFeatured, setLoadingFeatured] = useState(true);
     const [userStats, setUserStats] = useState({ dipinjam: 0, terlambat: 0 });
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const limit = 12;
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -33,9 +37,10 @@ const DashboardPeminjam = () => {
 
     const fetchBooks = useCallback(async () => {
         try {
-            const resBuku = await axios.get('http://localhost:5000/api/buku', { headers: { Authorization: `Bearer ${token}` } });
-            setBooks(resBuku.data);
-            setFilteredBooks(resBuku.data);
+            const resBuku = await axios.get(`http://localhost:5000/api/buku?page=${page}&limit=${limit}`, { headers: { Authorization: `Bearer ${token}` } });
+            setBooks(resBuku.data.data);
+            setFilteredBooks(resBuku.data.data);
+            setTotalPages(resBuku.data.pagination.totalPages);
         } catch (err) {
             console.error("Error fetching books:", err);
             if (err.response?.status === 401) {
@@ -43,7 +48,7 @@ const DashboardPeminjam = () => {
                 navigate('/');
             }
         }
-    }, [token, navigate]);
+    }, [token, navigate, page]);
 
     const fetchCategories = useCallback(async () => {
         try {
@@ -303,20 +308,24 @@ const DashboardPeminjam = () => {
 
                 {/* --- STATS GRID --- */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-                    {[
-                        { label: 'Buku Dipinjam', value: userStats.dipinjam, color: 'bg-[#AEEA00]', icon: <Book /> },
-                        { label: 'Buku Terlambat', value: userStats.terlambat, color: 'bg-[#FF4081]', icon: <Clock /> },
-                        { label: 'Koleksi Saya', value: savedBookIds.length, color: 'bg-[#00E5FF]', icon: <Heart /> },
-                        { label: 'Point Literasi', value: '0', color: 'bg-[#FFD600]', icon: <Zap /> },
-                    ].map((s, i) => (
-                        <div key={i} className={`${s.color} brutal-border-heavy brutal-shadow p-6 group`}>
-                            <div className="bg-white brutal-border w-10 h-10 flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform shadow-none">
-                                {s.icon}
+                    {loading ? (
+                        Array.from({ length: 4 }).map((_, i) => <StatBoxSkeleton key={i} />)
+                    ) : (
+                        [
+                            { label: 'Buku Dipinjam', value: userStats.dipinjam, color: 'bg-[#AEEA00]', icon: <Book /> },
+                            { label: 'Buku Terlambat', value: userStats.terlambat, color: 'bg-[#FF4081]', icon: <Clock /> },
+                            { label: 'Koleksi Saya', value: savedBookIds.length, color: 'bg-[#00E5FF]', icon: <Heart /> },
+                            { label: 'Point Literasi', value: '0', color: 'bg-[#FFD600]', icon: <Zap /> },
+                        ].map((s, i) => (
+                            <div key={i} className={`${s.color} brutal-border-heavy brutal-shadow p-6 group`}>
+                                <div className="bg-white brutal-border w-10 h-10 flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform shadow-none">
+                                    {s.icon}
+                                </div>
+                                <h3 className="text-4xl font-black mb-1">{s.value}</h3>
+                                <p className="text-[10px] font-black uppercase tracking-wider text-black/60 leading-none">{s.label}</p>
                             </div>
-                            <h3 className="text-4xl font-black mb-1">{s.value}</h3>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-black/60 leading-none">{s.label}</p>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
 
                 {/* --- FEATURED SECTION --- */}
@@ -452,8 +461,8 @@ const DashboardPeminjam = () => {
                     </div>
 
                     {loading ? (
-                        <div className="flex items-center justify-center py-20">
-                            <div className="w-16 h-16 border-8 border-black border-t-[#FFD600] animate-spin"></div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            {Array.from({ length: 8 }).map((_, i) => <BookCardSkeleton key={i} />)}
                         </div>
                     ) : filteredBooks.length === 0 ? (
                         <div className="bg-white brutal-border-heavy p-20 text-center brutal-shadow">
@@ -508,17 +517,47 @@ const DashboardPeminjam = () => {
                             ))}
                         </div>
                     )}
+
+                    {/* PAGINATION CONTROLS */}
+                    {!loading && filteredBooks.length > 0 && totalPages > 1 && (
+                        <div className="flex justify-center flex-wrap gap-4 mt-16">
+                            <button
+                                onClick={() => { setPage(p => Math.max(1, p - 1)); document.getElementById('katalog-section').scrollIntoView({behavior: 'smooth'}); }}
+                                disabled={page === 1}
+                                className="px-6 py-3 bg-white text-black font-black uppercase text-sm brutal-border brutal-shadow-sm hover:bg-[#FFD600] hover:-translate-y-1 transition-transform disabled:opacity-50 disabled:hover:bg-white disabled:hover:translate-y-0"
+                            >
+                                &lt; Sebelumnya
+                            </button>
+                            <span className="px-8 py-3 bg-black text-white font-black uppercase text-sm brutal-border flex items-center shadow-none border-4 border-black">
+                                Halaman {page} dari {totalPages}
+                            </span>
+                            <button
+                                onClick={() => { setPage(p => Math.min(totalPages, p + 1)); document.getElementById('katalog-section').scrollIntoView({behavior: 'smooth'}); }}
+                                disabled={page === totalPages}
+                                className="px-6 py-3 bg-white text-black font-black uppercase text-sm brutal-border brutal-shadow-sm hover:bg-[#AEEA00] hover:-translate-y-1 transition-transform disabled:opacity-50 disabled:hover:bg-white disabled:hover:translate-y-0"
+                            >
+                                Selanjutnya &gt;
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* --- COMMUNITY HUB & NEWSLETTER --- */}
                 <div className="mt-32 grid md:grid-cols-[1.2fr_0.8fr] gap-8">
-                    <div className="bg-[#AEEA00] brutal-border-heavy brutal-shadow-lg p-12">
+                    <div className="bg-[#00E5FF] brutal-border-heavy brutal-shadow-lg p-12">
                         <MessageSquare size={48} className="mb-6" />
-                        <h2 className="text-4xl font-black uppercase tracking-tighter mb-4 leading-none">Join the Sastra.in Community!</h2>
-                        <p className="font-black uppercase text-black/60 mb-8 max-w-md leading-tight">Dapatkan Update koleksi terbaru dan info event literasi seru setiap minggunya.</p>
-                        <div className="flex gap-4">
-                            <input type="email" placeholder="EMAIL@KAMU.COM" className="flex-1 bg-white brutal-border px-4 py-3 font-black placeholder:text-black/30 outline-none" />
-                            <button className="bg-black text-white px-6 py-3 font-black uppercase brutal-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">GABUNG</button>
+                        <h2 className="text-4xl font-black uppercase tracking-tighter mb-4 leading-none">Gabung Komunitas Sastra.in!</h2>
+                        <p className="font-black uppercase text-black/70 mb-8 max-w-md leading-tight">Ngobrol bareng sesama pembaca, dapatkan info rilis buku terbaru, dan ikut diskusi seru setiap minggunya.</p>
+                        
+                        <div className="flex flex-col gap-4">
+                            <a href="#" className="bg-[#25D366] text-black border-4 border-black px-6 py-4 text-sm md:text-base font-black uppercase brutal-shadow hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                                Saluran WhatsApp
+                            </a>
+                            <a href="#" className="bg-[#5865F2] text-white border-4 border-black px-6 py-4 text-sm md:text-base font-black uppercase brutal-shadow hover:translate-y-1 hover:shadow-none transition-all flex items-center justify-center gap-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+                                Server Discord
+                            </a>
                         </div>
                     </div>
 
@@ -533,7 +572,7 @@ const DashboardPeminjam = () => {
 
             {/* --- FLOATING NAVBAR BAWAH --- */}
             <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 px-4 w-full flex justify-center">
-                <nav className="flex items-center gap-2 p-2 bg-white brutal-border-heavy brutal-shadow-lg max-w-max overflow-x-auto scrollbar-hide">
+                <nav className="flex items-center gap-2 p-2 bg-white brutal-border-heavy brutal-shadow-lg max-w-full overflow-x-auto scrollbar-hide">
                     {menuItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         return (

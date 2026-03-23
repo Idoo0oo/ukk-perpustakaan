@@ -6,6 +6,7 @@
 
 const jwt = require('jsonwebtoken');
 
+// Memverifikasi keabsahan token JWT dari header Authorization
 exports.verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -21,6 +22,7 @@ exports.verifyToken = (req, res, next) => {
     }
 };
 
+// Memastikan bahwa user memiliki hak akses (role) sebagai Admin
 exports.isAdmin = (req, res, next) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ message: "Akses khusus Admin!" });

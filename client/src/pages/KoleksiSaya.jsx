@@ -7,10 +7,12 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Book, Trash2, BookOpen, LogOut, ArrowLeft, LayoutGrid, Heart, User, UserCircle } from 'lucide-react';
 import usePageTitle from '../hooks/usePageTitle';
 import useProfilePhoto from '../hooks/useProfilePhoto';
+import { BookCardSkeleton } from '../components/Skeleton';
 
 const KoleksiSaya = () => {
     usePageTitle('Koleksi Saya');
     const [books, setBooks] = useState([]);
+    const [loading, setLoading] = useState(true);
     const token = localStorage.getItem('token');
     const namaUser = localStorage.getItem('namaUser') || 'Peminjam';
     const { fotoUrl } = useProfilePhoto();
@@ -23,7 +25,11 @@ const KoleksiSaya = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setBooks(res.data);
-        } catch (err) { console.error(err); }
+            setLoading(false);
+        } catch (err) { 
+            console.error(err); 
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -138,7 +144,11 @@ const KoleksiSaya = () => {
                     <p className="font-black uppercase text-black/50 max-w-md">Daftar buku favorit yang kamu simpan untuk dibaca nanti.</p>
                 </div>
 
-                {books.length === 0 ? (
+                {loading ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        {Array.from({ length: 4 }).map((_, i) => <BookCardSkeleton key={i} />)}
+                    </div>
+                ) : books.length === 0 ? (
                     <div className="bg-white brutal-border-heavy p-20 text-center brutal-shadow mt-8">
                         <Heart size={80} className="mx-auto text-[#FF4081] mb-6 opacity-20" strokeWidth={3} />
                         <p className="text-2xl font-black uppercase mb-2">Belum ada koleksi.</p>
@@ -184,7 +194,7 @@ const KoleksiSaya = () => {
 
             {/* --- FLOATING NAVBAR BAWAH --- */}
             <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 px-4 w-full flex justify-center">
-                <nav className="flex items-center gap-2 p-2 bg-white brutal-border-heavy brutal-shadow-lg max-w-max overflow-x-auto scrollbar-hide">
+                <nav className="flex items-center gap-2 p-2 bg-white brutal-border-heavy brutal-shadow-lg max-w-full overflow-x-auto scrollbar-hide">
                     {menuItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         return (

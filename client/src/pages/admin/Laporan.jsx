@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Printer, FileText, Calendar, RotateCcw } from 'lucide-react';
+import { TableSkeleton } from '../../components/Skeleton';
 import usePageTitle from '../../hooks/usePageTitle';
 
 const Laporan = () => {
@@ -15,31 +16,28 @@ const Laporan = () => {
 
     useEffect(() => { fetchData(); }, []);
 
-    const fetchData = async () => {
+    const fetchData = async (start = dateRange.start, end = dateRange.end) => {
+        setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/peminjaman', { headers: { Authorization: `Bearer ${token}` } });
-            const sortedData = res.data.sort((a, b) => new Date(b.TanggalPeminjaman) - new Date(a.TanggalPeminjaman));
-            setTransactions(sortedData);
+            const res = await axios.get(`http://localhost:5000/api/laporan/peminjaman?startDate=${start}&endDate=${end}`, { headers: { Authorization: `Bearer ${token}` } });
+            setTransactions(res.data);
             setLoading(false);
         } catch (error) {
-            console.error(error);
+            console.error("Gagal mengambil laporan:", error);
             setLoading(false);
         }
     };
 
-    const filteredTransactions = transactions.filter(item => {
-        const tglPinjam = new Date(item.TanggalPeminjaman).toISOString().split('T')[0];
-        return tglPinjam >= dateRange.start && tglPinjam <= dateRange.end;
-    });
+    const filteredTransactions = transactions;
 
     const handlePrint = () => { window.print(); };
 
     const handleReset = () => {
-        setDateRange({
-            start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-            end: new Date().toISOString().split('T')[0]
-        });
+        const start = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+        const end = new Date().toISOString().split('T')[0];
+        setDateRange({ start, end });
+        fetchData(start, end);
     };
 
     const formatTanggalIndo = (dateStr) => {
@@ -101,6 +99,9 @@ const Laporan = () => {
                         />
                     </div>
                     <div className="flex gap-2">
+                        <button onClick={() => fetchData(dateRange.start, dateRange.end)} className="px-5 py-2 bg-[#00E5FF] brutal-border text-black font-black uppercase text-sm hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_#000] transition-all">
+                            Terapkan
+                        </button>
                         <button onClick={handleReset} className="p-2 bg-white brutal-border hover:bg-[#FFD600] transition-colors" title="Reset Filter">
                             <RotateCcw size={16} />
                         </button>
@@ -142,42 +143,44 @@ const Laporan = () => {
                 </div>
 
                 {/* Tabel Data */}
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse font-mono">
-                        <thead>
-                            <tr className="bg-black text-white text-xs uppercase">
-                                <th className="p-3 font-black border border-black text-center w-10">No</th>
-                                <th className="p-3 font-black border border-black">Peminjam</th>
-                                <th className="p-3 font-black border border-black">Judul Buku</th>
-                                <th className="p-3 font-black border border-black text-center">Tgl Pinjam</th>
-                                <th className="p-3 font-black border border-black text-center">Tgl Kembali</th>
-                                <th className="p-3 font-black border border-black text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-sm">
-                            {loading ? (
-                                <tr><td colSpan="6" className="p-8 text-center font-black uppercase">Memuat data...</td></tr>
-                            ) : filteredTransactions.length === 0 ? (
-                                <tr><td colSpan="6" className="p-8 text-center font-black uppercase text-black/40">Tidak ada data pada periode ini.</td></tr>
-                            ) : (
-                                filteredTransactions.map((item, index) => (
-                                    <tr key={item.PeminjamanID} className="border-b-2 border-black/10 hover:bg-[#FFD600]/10 print:hover:bg-transparent">
-                                        <td className="p-3 border border-black/20 text-center font-bold">{index + 1}</td>
-                                        <td className="p-3 border border-black/20 font-black uppercase text-xs">{item.NamaPeminjam || item.NamaLengkap}</td>
-                                        <td className="p-3 border border-black/20 font-bold text-xs">{item.JudulBuku || item.Judul}</td>
-                                        <td className="p-3 border border-black/20 text-center font-bold text-xs whitespace-nowrap">{formatTanggalIndo(item.TanggalPeminjaman)}</td>
-                                        <td className="p-3 border border-black/20 text-center font-bold text-xs whitespace-nowrap">{formatTanggalIndo(item.TanggalPengembalian)}</td>
-                                        <td className="p-3 border border-black/20 text-center">
-                                            <span className={`px-2 py-0.5 text-[10px] font-black uppercase border-2 border-black print:border-none print:bg-transparent ${statusColors[item.StatusPeminjaman] || 'bg-white'}`}>
-                                                {item.StatusPeminjaman}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                {loading ? (
+                    <TableSkeleton rows={5} />
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse font-mono">
+                            <thead>
+                                <tr className="bg-black text-white text-xs uppercase">
+                                    <th className="p-3 font-black border border-black text-center w-10">No</th>
+                                    <th className="p-3 font-black border border-black">Peminjam</th>
+                                    <th className="p-3 font-black border border-black">Judul Buku</th>
+                                    <th className="p-3 font-black border border-black text-center">Tgl Pinjam</th>
+                                    <th className="p-3 font-black border border-black text-center">Tgl Kembali</th>
+                                    <th className="p-3 font-black border border-black text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-sm">
+                                {filteredTransactions.length === 0 ? (
+                                    <tr><td colSpan="6" className="p-8 text-center font-black uppercase text-black/40">Tidak ada data pada periode ini.</td></tr>
+                                ) : (
+                                    filteredTransactions.map((item, index) => (
+                                        <tr key={item.PeminjamanID} className="border-b-2 border-black/10 hover:bg-[#FFD600]/10 print:hover:bg-transparent">
+                                            <td className="p-3 border border-black/20 text-center font-bold">{index + 1}</td>
+                                            <td className="p-3 border border-black/20 font-black uppercase text-xs">{item.NamaPeminjam || item.NamaLengkap}</td>
+                                            <td className="p-3 border border-black/20 font-bold text-xs">{item.JudulBuku || item.Judul}</td>
+                                            <td className="p-3 border border-black/20 text-center font-bold text-xs whitespace-nowrap">{formatTanggalIndo(item.TanggalPeminjaman)}</td>
+                                            <td className="p-3 border border-black/20 text-center font-bold text-xs whitespace-nowrap">{formatTanggalIndo(item.TanggalPengembalian)}</td>
+                                            <td className="p-3 border border-black/20 text-center">
+                                                <span className={`px-2 py-0.5 text-[10px] font-black uppercase border-2 border-black print:border-none print:bg-transparent ${statusColors[item.StatusPeminjaman] || 'bg-white'}`}>
+                                                    {item.StatusPeminjaman}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
 
                 {/* Footer Tanda Tangan */}
                 <div className="mt-12 flex justify-end print:flex">

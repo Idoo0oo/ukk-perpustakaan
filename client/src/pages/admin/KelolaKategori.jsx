@@ -3,17 +3,20 @@ import { motion } from 'framer-motion';
 import { Layers, Plus, Trash2, Tag, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { TableSkeleton } from '../../components/Skeleton';
 
 const KelolaKategori = () => {
     const [categories, setCategories] = useState([]);
     const [newCategory, setNewCategory] = useState('');
+    const [loading, setLoading] = useState(true);
     const token = localStorage.getItem('token');
 
     const fetchCategories = async () => {
+        setLoading(true);
         try {
             const res = await axios.get('http://localhost:5000/api/kategori', { headers: { Authorization: `Bearer ${token}` } });
             setCategories(res.data);
-        } catch (err) { console.error(err); }
+        } catch (err) { console.error(err); } finally { setLoading(false); }
     };
 
     useEffect(() => { fetchCategories(); }, []);
@@ -101,43 +104,47 @@ const KelolaKategori = () => {
                     initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
                     className="md:col-span-2 bg-white brutal-border-heavy brutal-shadow overflow-hidden"
                 >
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left font-mono">
-                            <thead className="bg-black text-white">
-                                <tr>
-                                    <th className="p-4 font-black uppercase text-xs text-center w-16">No</th>
-                                    <th className="p-4 font-black uppercase text-xs">Nama Kategori</th>
-                                    <th className="p-4 font-black uppercase text-xs text-center w-24">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {categories.length === 0 ? (
+                    {loading ? (
+                        <TableSkeleton rows={5} />
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left font-mono">
+                                <thead className="bg-black text-white">
                                     <tr>
-                                        <td colSpan="3" className="p-12 text-center font-black uppercase text-black/30">Belum ada kategori.</td>
+                                        <th className="p-4 font-black uppercase text-xs text-center w-16">No</th>
+                                        <th className="p-4 font-black uppercase text-xs">Nama Kategori</th>
+                                        <th className="p-4 font-black uppercase text-xs text-center w-24">Aksi</th>
                                     </tr>
-                                ) : categories.map((cat, index) => (
-                                    <tr key={cat.KategoriID} className="border-b-2 border-black/10 hover:bg-[#FFD600]/20 transition-colors">
-                                        <td className="p-4 text-center font-black text-black/40 text-sm">{index + 1}</td>
-                                        <td className="p-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-2 h-8 bg-black"></div>
-                                                <span className="font-black uppercase text-lg">{cat.NamaKategori}</span>
-                                            </div>
-                                        </td>
-                                        <td className="p-4 text-center">
-                                            <button 
-                                                onClick={() => handleDelete(cat.KategoriID)} 
-                                                className="p-2 bg-white brutal-border hover:bg-[#FF4081] hover:text-white transition-colors mx-auto flex items-center justify-center"
-                                                title="Hapus Kategori"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {categories.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="3" className="p-12 text-center font-black uppercase text-black/30">Belum ada kategori.</td>
+                                        </tr>
+                                    ) : categories.map((cat, index) => (
+                                        <tr key={cat.KategoriID} className="border-b-2 border-black/10 hover:bg-[#FFD600]/20 transition-colors">
+                                            <td className="p-4 text-center font-black text-black/40 text-sm">{index + 1}</td>
+                                            <td className="p-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-2 h-8 bg-black"></div>
+                                                    <span className="font-black uppercase text-lg">{cat.NamaKategori}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <button 
+                                                    onClick={() => handleDelete(cat.KategoriID)} 
+                                                    className="p-2 bg-white brutal-border hover:bg-[#FF4081] hover:text-white transition-colors mx-auto flex items-center justify-center"
+                                                    title="Hapus Kategori"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </motion.div>
             </div>
         </div>

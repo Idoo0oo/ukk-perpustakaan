@@ -7,6 +7,7 @@
 const db = require('../config/db');
 
 class UlasanModel {
+    // Menambahkan ulasan baru untuk sebuah buku
     static async create(userID, bukuID, ulasan, rating) {
         return db.query(
             "INSERT INTO ulasanbuku (UserID, BukuID, Ulasan, Rating) VALUES (?, ?, ?, ?)",
@@ -43,6 +44,7 @@ class UlasanModel {
         return rows;
     }
 
+    // Menghapus ulasan berdasarkan ID
     static async delete(id) {
         return db.query("DELETE FROM ulasanbuku WHERE UlasanID = ?", [id]);
     }

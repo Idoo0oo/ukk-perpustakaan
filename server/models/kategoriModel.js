@@ -1,30 +1,30 @@
 const db = require('../config/db');
 
 class KategoriModel {
-    // 1. INI FUNGSI YANG HILANG (Penyebab Error)
+    // Mengambil semua data kategori buku
     static async findAll() {
         const [rows] = await db.query("SELECT * FROM kategoribuku ORDER BY KategoriID DESC");
         return rows;
     }
 
-    // 2. Fungsi cari berdasarkan ID
+    // Mencari kategori berdasarkan ID
     static async findById(id) {
         const [rows] = await db.query("SELECT * FROM kategoribuku WHERE KategoriID = ?", [id]);
         return rows[0];
     }
 
-    // 3. Fungsi Tambah Kategori
+    // Menambahkan kategori baru
     static async create(namaKategori) {
         const [result] = await db.query("INSERT INTO kategoribuku (NamaKategori) VALUES (?)", [namaKategori]);
         return result.insertId;
     }
 
-    // 4. Fungsi Update Kategori
+    // Memperbarui nama kategori
     static async update(id, namaKategori) {
         return db.query("UPDATE kategoribuku SET NamaKategori = ? WHERE KategoriID = ?", [namaKategori, id]);
     }
 
-    // 5. Fungsi Hapus Kategori
+    // Menghapus kategori berdasarkan ID
     static async delete(id) {
         return db.query("DELETE FROM kategoribuku WHERE KategoriID = ?", [id]);
     }

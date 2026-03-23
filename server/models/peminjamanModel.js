@@ -6,6 +6,7 @@
 const db = require('../config/db');
 
 class PeminjamanModel {
+    // Membuat transaksi peminjaman buku baru
     static async create(userID, bukuID, tglPinjam, tglKembali) {
         const [result] = await db.query(
             "INSERT INTO peminjaman (UserID, BukuID, TanggalPeminjaman, TanggalPengembalian, StatusPeminjaman) VALUES (?, ?, ?, ?, 'Menunggu')",
@@ -14,6 +15,7 @@ class PeminjamanModel {
         return result.insertId;
     }
 
+    // Mencari data transaksi peminjaman berdasarkan ID
     static async findById(id) {
         const [rows] = await db.query("SELECT * FROM peminjaman WHERE PeminjamanID = ?", [id]);
         return rows[0];
@@ -83,6 +85,52 @@ class PeminjamanModel {
             "UPDATE peminjaman SET StatusPeminjaman = ?, Denda = ?, TanggalPengembalian = ? WHERE PeminjamanID = ?",
             [status, denda, tglReal, id]
         );
+    }
+
+    // [NEW] Fitur ACID Transaction: Admin Approve Peminjaman
+    static async approveTransaction(peminjamanID, bukuID, status, tglPinjam, tglKembali) {
+        const conn = await db.getConnection();
+        try {
+            await conn.beginTransaction();
+            
+            await conn.query(
+                "UPDATE peminjaman SET StatusPeminjaman = ?, TanggalPeminjaman = ?, TanggalPengembalian = ? WHERE PeminjamanID = ?",
+                [status, tglPinjam, tglKembali, peminjamanID]
+            );
+            
+            await conn.query("UPDATE buku SET Stok = Stok - 1 WHERE BukuID = ?", [bukuID]);
+            
+            await conn.commit();
+            return true;
+        } catch (error) {
+            await conn.rollback();
+            throw error;
+        } finally {
+            conn.release();
+        }
+    }
+
+    // [NEW] Fitur ACID Transaction: Finalisasi Pengembalian
+    static async returnTransaction(peminjamanID, bukuID, status, denda, tglReal) {
+        const conn = await db.getConnection();
+        try {
+            await conn.beginTransaction();
+            
+            await conn.query(
+                "UPDATE peminjaman SET StatusPeminjaman = ?, Denda = ?, TanggalPengembalian = ? WHERE PeminjamanID = ?",
+                [status, denda, tglReal, peminjamanID]
+            );
+            
+            await conn.query("UPDATE buku SET Stok = Stok + 1 WHERE BukuID = ?", [bukuID]);
+            
+            await conn.commit();
+            return true;
+        } catch (error) {
+            await conn.rollback();
+            throw error;
+        } finally {
+            conn.release();
+        }
     }
 
     // Ambil buku yang paling sering dipinjam dalam 7 hari terakhir

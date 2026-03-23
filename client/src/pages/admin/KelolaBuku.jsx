@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit, Trash2, Search, BookOpen, X, Book, Image as ImageIcon, CheckSquare, Square } from 'lucide-react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { TableSkeleton } from '../../components/Skeleton';
 
 const KelolaBuku = () => {
     const [books, setBooks] = useState([]);
@@ -17,13 +18,19 @@ const KelolaBuku = () => {
     });
     const [imageFile, setImageFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [loading, setLoading] = useState(true);
+    const limit = 10;
     const token = localStorage.getItem('token');
 
     const fetchBooks = async () => {
+        setLoading(true);
         try {
-            const res = await axios.get('http://localhost:5000/api/buku', { headers: { Authorization: `Bearer ${token}` } });
-            setBooks(res.data);
-        } catch (err) { console.error("Gagal ambil buku", err); }
+            const res = await axios.get(`http://localhost:5000/api/buku?page=${page}&limit=${limit}`, { headers: { Authorization: `Bearer ${token}` } });
+            setBooks(res.data.data);
+            setTotalPages(res.data.pagination.totalPages);
+        } catch (err) { console.error("Gagal ambil buku", err); } finally { setLoading(false); }
     };
 
     const fetchCategories = async () => {
@@ -33,7 +40,8 @@ const KelolaBuku = () => {
         } catch (err) { console.error("Gagal ambil kategori", err); }
     };
 
-    useEffect(() => { fetchBooks(); fetchCategories(); }, []);
+    useEffect(() => { fetchCategories(); }, []);
+    useEffect(() => { fetchBooks(); }, [page]);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -67,7 +75,17 @@ const KelolaBuku = () => {
             closeModal();
             fetchBooks();
         } catch (err) { 
-            Swal.fire('Error', err.response?.data?.error || 'Gagal memproses data.', 'error'); 
+            if (err.response?.status === 400 && err.response?.data?.errors) {
+                const errorMsg = err.response.data.errors.map(e => `• ${e.message}`).join('<br/>');
+                Swal.fire({
+                    icon: 'error',
+                    title: '<span class="font-black uppercase text-sm">Validasi Gagal</span>',
+                    html: `<div class="text-left font-bold text-xs font-mono mt-2">${errorMsg}</div>`,
+                    customClass: { popup: 'brutal-border-heavy brutal-shadow' }
+                });
+            } else {
+                Swal.fire('Error', err.response?.data?.error || err.response?.data?.message?.error || 'Gagal memproses data.', 'error'); 
+            }
         }
     };
 
@@ -151,59 +169,71 @@ const KelolaBuku = () => {
 
             {/* Table */}
             <div className="bg-white brutal-border-heavy brutal-shadow overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left font-mono">
-                        <thead className="bg-black text-white">
-                            <tr>
-                                <th className="p-4 font-black uppercase text-xs text-center w-16">No</th>
-                                <th className="p-4 font-black uppercase text-xs">Buku</th>
-                                <th className="p-4 font-black uppercase text-xs">Kategori</th>
-                                <th className="p-4 font-black uppercase text-xs text-center">Stok</th>
-                                <th className="p-4 font-black uppercase text-xs text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredBooks.map((book, index) => (
-                                <tr key={book.BukuID} className="border-b-2 border-black/10 hover:bg-[#FFD600]/20 transition-colors">
-                                    <td className="p-4 text-center font-black text-black/40 text-sm">{index + 1}</td>
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-14 bg-[#FFFBEB] brutal-border overflow-hidden shrink-0">
-                                                {book.Gambar ? <img src={`http://localhost:5000/uploads/${book.Gambar}`} className="w-full h-full object-cover" /> : <Book size={20} className="m-auto mt-4 text-black/20" />}
-                                            </div>
-                                            <div>
-                                                <div className="font-black uppercase text-sm">{book.Judul}</div>
-                                                <div className="text-[10px] font-bold text-black/50 uppercase">{book.Penulis}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="flex flex-wrap gap-1">
-                                            {book.NamaKategori ? book.NamaKategori.split(', ').map((k, idx) => (
-                                                <span key={idx} className="px-2 py-0.5 bg-[#00E5FF] brutal-border text-[10px] font-black uppercase">{k}</span>
-                                            )) : <span className="text-black/30 text-xs font-bold">-</span>}
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-center font-black text-xl">{book.Stok}</td>
-                                    <td className="p-4 text-center">
-                                        <div className="flex justify-center gap-2">
-                                            <button onClick={() => openEditModal(book)} className="p-2 bg-white brutal-border hover:bg-[#00E5FF] transition-colors" title="Edit">
-                                                <Edit size={16} />
-                                            </button>
-                                            <button onClick={() => handleDelete(book.BukuID)} className="p-2 bg-white brutal-border hover:bg-[#FF4081] hover:text-white transition-colors" title="Hapus">
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
+                {loading ? (
+                    <TableSkeleton rows={5} />
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left font-mono">
+                            <thead className="bg-black text-white">
+                                <tr>
+                                    <th className="p-4 font-black uppercase text-xs text-center w-16">No</th>
+                                    <th className="p-4 font-black uppercase text-xs">Buku</th>
+                                    <th className="p-4 font-black uppercase text-xs">Kategori</th>
+                                    <th className="p-4 font-black uppercase text-xs text-center">Stok</th>
+                                    <th className="p-4 font-black uppercase text-xs text-center">Aksi</th>
                                 </tr>
-                            ))}
-                            {filteredBooks.length === 0 && (
-                                <tr><td colSpan="5" className="p-12 text-center font-black uppercase text-black/30">Belum ada data buku.</td></tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {filteredBooks.map((book, index) => (
+                                    <tr key={book.BukuID} className="border-b-2 border-black/10 hover:bg-[#FFD600]/20 transition-colors">
+                                        <td className="p-4 text-center font-black text-black/40 text-sm">{index + 1}</td>
+                                        <td className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-14 bg-[#FFFBEB] brutal-border overflow-hidden shrink-0">
+                                                    {book.Gambar ? <img src={`http://localhost:5000/uploads/${book.Gambar}`} className="w-full h-full object-cover" /> : <Book size={20} className="m-auto mt-4 text-black/20" />}
+                                                </div>
+                                                <div>
+                                                    <div className="font-black uppercase text-sm">{book.Judul}</div>
+                                                    <div className="text-[10px] font-bold text-black/50 uppercase">{book.Penulis}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex flex-wrap gap-1">
+                                                {book.NamaKategori ? book.NamaKategori.split(', ').map((k, idx) => (
+                                                    <span key={idx} className="px-2 py-0.5 bg-[#00E5FF] brutal-border text-[10px] font-black uppercase">{k}</span>
+                                                )) : <span className="text-black/30 text-xs font-bold">-</span>}
+                                            </div>
+                                        </td>
+                                        <td className="p-4 text-center font-black text-xl">{book.Stok}</td>
+                                        <td className="p-4 text-center">
+                                            <div className="flex justify-center gap-2">
+                                                <button onClick={() => openEditModal(book)} className="p-2 bg-white brutal-border hover:bg-[#00E5FF] transition-colors" title="Edit">
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button onClick={() => handleDelete(book.BukuID)} className="p-2 bg-white brutal-border hover:bg-[#FF4081] hover:text-white transition-colors" title="Hapus">
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {filteredBooks.length === 0 && (
+                                    <tr><td colSpan="5" className="p-12 text-center font-black uppercase text-black/30">Belum ada data buku.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
+            
+            {totalPages > 1 && (
+                <div className="flex justify-between items-center mt-4">
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-5 py-2.5 bg-white brutal-border border-black text-xs font-black uppercase hover:bg-[#FFD600] disabled:opacity-50 transition-colors">Sebelumnya</button>
+                    <span className="text-xs font-black uppercase px-6 py-2.5 bg-black text-white brutal-border border-black">Halaman {page} dari {totalPages}</span>
+                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-5 py-2.5 bg-white brutal-border border-black text-xs font-black uppercase hover:bg-[#AEEA00] disabled:opacity-50 transition-colors">Selanjutnya</button>
+                </div>
+            )}
 
             {/* Modal */}
             <AnimatePresence>

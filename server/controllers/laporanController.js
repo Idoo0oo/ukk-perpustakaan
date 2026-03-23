@@ -1,5 +1,6 @@
 const LaporanModel = require('../models/laporanModel');
 
+// Mengambil data laporan peminjaman berdasarkan rentang tanggal
 exports.getLaporanPeminjaman = async (req, res) => {
     const { startDate, endDate } = req.query;
 

@@ -5,6 +5,7 @@ import {
     BookOpen, CheckCircle, XCircle, Clock, CalendarDays, 
     ArrowRightLeft, BookUp, BookDown 
 } from 'lucide-react';
+import { TableSkeleton } from '../../components/Skeleton';
 
 const AdminPermintaan = () => {
     const [borrowRequests, setBorrowRequests] = useState([]);
@@ -169,10 +170,7 @@ const AdminPermintaan = () => {
             {/* Content */}
             <div className="bg-white brutal-border-heavy brutal-shadow overflow-hidden min-h-[300px]">
                 {loading ? (
-                    <div className="p-16 flex flex-col items-center justify-center gap-4">
-                        <div className="w-12 h-12 border-8 border-black border-t-[#FFD600] animate-spin"></div>
-                        <p className="font-black uppercase text-sm">Memuat Data...</p>
-                    </div>
+                    <TableSkeleton rows={5} />
                 ) : (
                     <>
                         {activeTab === 'borrow' && (

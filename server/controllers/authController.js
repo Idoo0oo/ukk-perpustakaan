@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/userModel'); // Import Model
 
+// Menangani proses registrasi akun baru
 exports.register = async (req, res) => {
     const { username, password, email, namaLengkap, alamat } = req.body;
 
@@ -33,6 +34,7 @@ exports.register = async (req, res) => {
     }
 };
 
+// Menangani proses login dan pembuatan token JWT
 exports.login = async (req, res) => {
     const { username, password } = req.body;
     try {

@@ -63,8 +63,8 @@ exports.approvePeminjaman = async (req, res) => {
         const newDeadline = new Date(today);
         newDeadline.setDate(today.getDate() + durasiHari);
 
-        await PeminjamanModel.updateStatus(id, 'Dipinjam', getLocalDate(today), getLocalDate(newDeadline));
-        await BukuModel.updateStok(pinjam.BukuID, -1); // Kurangi stok
+        // Gunakan Transaction dari Model alih-alih dua async query terpisah
+        await PeminjamanModel.approveTransaction(id, pinjam.BukuID, 'Dipinjam', getLocalDate(today), getLocalDate(newDeadline));
 
         res.json({ message: "Peminjaman disetujui!" });
     } catch (error) {
@@ -120,8 +120,8 @@ exports.kembalikanBuku = async (req, res) => {
             denda = terlambat * DENDA_PER_HARI;
         }
 
-        await PeminjamanModel.finalizeReturn(id, 'Dikembalikan', denda, getLocalDate(tglDikembalikan));
-        await BukuModel.updateStok(pinjam.BukuID, 1); // Tambah stok kembali
+        // Gunakan Transaction dari Model
+        await PeminjamanModel.returnTransaction(id, pinjam.BukuID, 'Dikembalikan', denda, getLocalDate(tglDikembalikan));
 
         res.json({ message: "Buku dikembalikan.", denda, terlambat });
     } catch (error) {
