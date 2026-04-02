@@ -13,6 +13,8 @@ ukk-perpustakaan/
 │   │   ├── App.jsx             # Routing utama aplikasi
 │   │   ├── main.jsx            # Entry point React
 │   │   ├── index.css           # Global styles + Neo-Brutalism utilities
+│   │   ├── components/         # Reusable UI components
+│   │   │   └── Skeleton.jsx    # Loading skeleton (BookCard, StatBox, List, Table)
 │   │   ├── hooks/              # Custom React hooks
 │   │   │   ├── usePageTitle.js  # Dynamic document title
 │   │   │   └── useProfilePhoto.js  # Fetch & cache foto profil user
@@ -21,15 +23,15 @@ ukk-perpustakaan/
 │   │        ├── Login.jsx
 │   │        ├── Register.jsx
 │   │        ├── AdminDashboard.jsx    # Layout shell admin (navbar, header)
-│   │        ├── DashboardSiswa.jsx   # Katalog buku peminjam
+│   │        ├── DashboardPeminjam.jsx # Katalog buku peminjam
 │   │        ├── PinjamanSaya.jsx     # Daftar pinjaman peminjam
 │   │        ├── KoleksiSaya.jsx      # Koleksi/bookmark buku
-│   │        ├── ProfilSiswa.jsx      # Profil peminjam (foto, info, password)
+│   │        ├── ProfilPeminjam.jsx   # Profil peminjam (foto, info, password)
 │   │        └── admin/              # Halaman khusus admin
 │   │             ├── DashboardHome.jsx
 │   │             ├── KelolaBuku.jsx
 │   │             ├── KelolaKategori.jsx
-│   │             ├── DataSiswa.jsx
+│   │             ├── DataPeminjam.jsx
 │   │             ├── DataUlasan.jsx
 │   │             ├── AdminPermintaan.jsx
 │   │             ├── RiwayatTransaksi.jsx
@@ -50,9 +52,12 @@ ukk-perpustakaan/
     │   ├── peminjamanController.js  # Peminjaman & pengembalian
     │   ├── ulasanController.js
     │   ├── laporanController.js
-    │   └── fiturController.js   # Koleksi & ulasan
+    │   ├── fiturController.js   # Koleksi pribadi (bookmark)
+    │   └── publicController.js  # Data publik landing page
     ├── middleware/
-    │   └── authMiddleware.js    # JWT verification & role check
+    │   ├── authMiddleware.js    # JWT verification & role check
+    │   ├── uploadMiddleware.js  # Multer config (gambar buku, filter & size limit)
+    │   └── validateMiddleware.js # Generic Zod schema validator
     ├── routes/                  # API endpoints
     │   ├── authRoutes.js
     │   ├── bukuRoutes.js
@@ -62,10 +67,18 @@ ukk-perpustakaan/
     │   ├── peminjamanRoutes.js
     │   ├── ulasanRoutes.js
     │   ├── laporanRoutes.js
-    │   └── fiturRoutes.js
+    │   ├── fiturRoutes.js       # Koleksi pribadi (bookmark)
+    │   └── publicRoutes.js      # Endpoint publik tanpa auth
+    ├── validations/             # Zod schema definitions
+    │   ├── authValidation.js    # Schema register & login
+    │   ├── bukuValidation.js    # Schema create & update buku
+    │   ├── peminjamanValidation.js  # Schema pinjam buku
+    │   ├── kategoriValidation.js    # Schema create & update kategori
+    │   ├── ulasanValidation.js      # Schema tambah ulasan
+    │   └── profileValidation.js     # Schema update profil & ganti password
     ├── uploads/                 # File upload storage (gambar buku & foto profil)
     ├── sql/
-    │   └── db_perpustakaan_full.sql  # Database schema (lengkap dengan FotoProfil)
+    │   └── db_perpustakaan_full.sql  # Database schema
     ├── index.js                 # Server entry point
     ├── seedAdmin.js             # Data seeder admin
     └── package.json
@@ -78,6 +91,7 @@ ukk-perpustakaan/
 - **Build Tool**: Vite 7.2.4
 - **Router**: React Router DOM 7.13.0
 - **CSS Framework**: TailwindCSS 4.1.18
+- **UI Plugin**: DaisyUI 5.5.14
 - **Design System**: Neo-Brutalism (custom utility classes di `index.css`)
 - **Animations**: Framer Motion 12.29.0
 - **HTTP Client**: Axios 1.13.3
@@ -93,6 +107,8 @@ ukk-perpustakaan/
 - **Authentication**: JWT (jsonwebtoken 9.0.3)
 - **Password Hashing**: bcryptjs 3.0.3
 - **File Upload**: Multer 2.0.2
+- **Input Validation**: Zod 4.3.6
+- **Rate Limiting**: express-rate-limit 8.3.1
 - **CORS**: cors 2.8.6
 - **Environment Variables**: dotenv 17.2.3
 
@@ -117,8 +133,10 @@ ukk-perpustakaan/
 │  │ Middleware Layer             │   │
 │  │  • CORS                      │   │
 │  │  • express.json()            │   │
+│  │  • Rate Limiter (global)     │   │
 │  │  • JWT Verification          │   │
 │  │  • Role-based Access Control │   │
+│  │  • Zod Input Validation      │   │
 │  └───────────┬──────────────────┘   │
 │              ↓                       │
 │  ┌─────────────────────────────┐   │
@@ -130,8 +148,9 @@ ukk-perpustakaan/
 │  │  /api/ulasan                 │   │
 │  │  /api/users     (admin)      │   │
 │  │  /api/laporan   (admin)      │   │
-│  │  /api/fitur                  │   │
+│  │  /api/fitur     (koleksi)    │   │
 │  │  /api/profile   (peminjam)   │   │
+│  │  /api/public                 │   │
 │  └───────────┬──────────────────┘   │
 │              ↓                       │
 │  ┌─────────────────────────────┐   │
@@ -212,6 +231,7 @@ ukk-perpustakaan/
 | GET | `/api/peminjaman/pending` | Admin | Daftar pending approval |
 | GET | `/api/peminjaman/return-requests` | Admin | Daftar pending return |
 | GET | `/api/peminjaman/history` | Admin | Semua riwayat |
+| GET | `/api/peminjaman/most-borrowed-week` | Authenticated | Buku terpopuler minggu ini |
 | PUT | `/api/peminjaman/:id/approve` | Admin | Approve peminjaman |
 | PUT | `/api/peminjaman/:id/reject` | Admin | Reject peminjaman |
 | PUT | `/api/peminjaman/:id/kembali` | Peminjam | Ajukan pengembalian |
@@ -232,15 +252,25 @@ ukk-perpustakaan/
 | PUT | `/api/profile/password` | Peminjam | Ganti password (verifikasi password lama) |
 | POST | `/api/profile/photo` | Peminjam | Upload foto profil (multipart/form-data) |
 
-### Features (Koleksi & Ulasan)
+### Features (Koleksi Pribadi)
 | Method | Endpoint | Access | Deskripsi |
 |--------|----------|--------|-----------|
-| POST | `/api/fitur/koleksi` | Authenticated | Toggle bookmark |
+| POST | `/api/fitur/koleksi` | Authenticated | Toggle bookmark (tambah/hapus) |
 | GET | `/api/fitur/koleksi` | Authenticated | Daftar koleksi pribadi |
-| POST | `/api/fitur/ulasan` | Authenticated | Tambah ulasan (dengan validasi) |
-| GET | `/api/fitur/ulasan/:bukuID` | Authenticated | Ulasan per buku |
-| GET | `/api/fitur/admin/all-ulasan` | Admin | Semua ulasan |
-| DELETE | `/api/fitur/admin/ulasan/:id` | Admin | Hapus ulasan |
+| GET | `/api/fitur/koleksi/status/:bukuID` | Authenticated | Cek status koleksi sebuah buku |
+
+### Reviews (Ulasan)
+| Method | Endpoint | Access | Deskripsi |
+|--------|----------|--------|-----------|
+| POST | `/api/ulasan` | Authenticated | Tambah ulasan buku |
+| GET | `/api/ulasan/:bukuID` | Authenticated | Ulasan per buku |
+| GET | `/api/ulasan/admin/all` | Admin | Semua ulasan |
+| DELETE | `/api/ulasan/admin/:id` | Admin | Hapus ulasan (moderasi) |
+
+### Public
+| Method | Endpoint | Access | Deskripsi |
+|--------|----------|--------|-----------|
+| GET | `/api/public/landing` | Public | Data statistik landing page (tanpa auth) |
 
 ### Reports
 | Method | Endpoint | Access | Deskripsi |
@@ -385,11 +415,13 @@ Seluruh antarmuka menggunakan tema **Neo-Brutalism** yang konsisten:
 
 1. **Password Security**: bcryptjs hashing (10 rounds) — pada register & ganti password
 2. **JWT Authentication**: Token expire 1 hari, payload `{ id, role }`
-3. **CORS**: Configured untuk cross-origin requests
-4. **File Upload**: Multer dengan batas 5MB untuk foto profil, 2MB untuk gambar buku
-5. **SQL Injection Prevention**: Parameterized queries dengan mysql2
-6. **Role Verification**: Middleware `verifyToken` + `isAdmin` di semua route sensitif
-7. **Password Change Verification**: `bcrypt.compare` memastikan password lama sebelum update
+3. **Input Validation**: Zod schema validation di semua endpoint yang menerima body/params
+4. **Rate Limiting**: express-rate-limit — global 500 req/5 menit, auth endpoint 10 req/15 menit
+5. **CORS**: Configured untuk cross-origin requests
+6. **File Upload**: Multer dengan batas 5MB untuk foto profil, 2MB untuk gambar buku
+7. **SQL Injection Prevention**: Parameterized queries dengan mysql2
+8. **Role Verification**: Middleware `verifyToken` + `isAdmin` di semua route sensitif
+9. **Password Change Verification**: `bcrypt.compare` memastikan password lama sebelum update
 
 ## 📦 File Upload System
 
@@ -413,6 +445,15 @@ Static serve: `GET /uploads/:filename`
 |------|------|--------|
 | `usePageTitle(title)` | `hooks/usePageTitle.js` | Set `document.title` dinamis |
 | `useProfilePhoto()` | `hooks/useProfilePhoto.js` | Fetch & return URL foto profil, `null` jika belum upload |
+
+## 🧩 Reusable Components
+
+| Component | File | Fungsi |
+|-----------|------|--------|
+| `BookCardSkeleton` | `components/Skeleton.jsx` | Loading placeholder kartu buku di katalog |
+| `StatBoxSkeleton` | `components/Skeleton.jsx` | Loading placeholder box statistik dashboard |
+| `ListSkeleton` | `components/Skeleton.jsx` | Loading placeholder list horizontal (PinjamanSaya, KoleksiSaya) |
+| `TableSkeleton` | `components/Skeleton.jsx` | Loading placeholder tabel admin |
 
 ## 🚀 Development Workflow
 
@@ -449,3 +490,6 @@ node server/seedAdmin.js
 - **Modal UX**: Bottom navbar otomatis tersembunyi saat modal terbuka via custom window events (`admin:modal:open` / `admin:modal:close`)
 - **Navbar Hover**: Bottom nav admin menampilkan label saat hover, hanya ikon saat idle
 - **Profile Photo Fallback**: Avatar peminjam menampilkan foto profil jika ada, atau silhouette abu-abu (default) jika belum diunggah
+- **Skeleton Loading**: Semua halaman dengan data async menggunakan komponen `Skeleton.jsx` untuk UX yang lebih smooth
+- **Zod Validation**: Semua endpoint yang menerima input (POST/PUT) divalidasi via `validateMiddleware.js` sebelum masuk controller
+- **Rate Limit Skip**: User dengan role `admin` otomatis dibebaskan dari global rate limiter

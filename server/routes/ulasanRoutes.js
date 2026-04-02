@@ -9,9 +9,11 @@ const express = require('express');
 const router = express.Router();
 const ulasanController = require('../controllers/ulasanController');
 const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
+const validate = require('../middleware/validateMiddleware');
+const ulasanValidation = require('../validations/ulasanValidation');
 
 // User: Tambah Ulasan
-router.post('/', verifyToken, ulasanController.addUlasan);
+router.post('/', verifyToken, validate(ulasanValidation.addUlasanSchema), ulasanController.addUlasan);
 
 // User/Public: Lihat Ulasan per Buku
 router.get('/:bukuID', verifyToken, ulasanController.getUlasanByBuku);

@@ -1,12 +1,9 @@
-/**
- * Deskripsi File:
- * Route untuk manajemen kategori buku.
- */
-
 const express = require('express');
 const router = express.Router();
-const kategoriController = require('../controllers/kategoriController'); // Pastikan path ini benar
+const kategoriController = require('../controllers/kategoriController');
 const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
+const validate = require('../middleware/validateMiddleware');
+const kategoriValidation = require('../validations/kategoriValidation');
 
 // Debugging: Cek apakah controller terbaca
 if (!kategoriController.createKategori || !kategoriController.getAllKategori) {
@@ -15,12 +12,10 @@ if (!kategoriController.createKategori || !kategoriController.getAllKategori) {
 
 // Public Routes
 router.get('/', kategoriController.getAllKategori);
-// router.get('/:id', kategoriController.getKategoriById); // Optional jika ada
 
 // Admin Routes (Protected)
-// Baris 13 yang error biasanya ada di sini:
-router.post('/', verifyToken, isAdmin, kategoriController.createKategori);
-router.put('/:id', verifyToken, isAdmin, kategoriController.updateKategori);
+router.post('/', verifyToken, isAdmin, validate(kategoriValidation.createKategoriSchema), kategoriController.createKategori);
+router.put('/:id', verifyToken, isAdmin, validate(kategoriValidation.updateKategoriSchema), kategoriController.updateKategori);
 router.delete('/:id', verifyToken, isAdmin, kategoriController.deleteKategori);
 
-module.exports = router;
+module.exports = router;

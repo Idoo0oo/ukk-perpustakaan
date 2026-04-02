@@ -24,9 +24,11 @@ Sistem manajemen perpustakaan digital full-stack berbasis web dengan desain **Ne
 
 | Layer | Teknologi |
 |-------|-----------|
-| Frontend | React 19, Vite, TailwindCSS, Framer Motion |
+| Frontend | React 19, Vite, TailwindCSS, DaisyUI, Framer Motion |
 | Backend | Node.js, Express 5, MySQL |
 | Auth | JWT + bcryptjs |
+| Validation | Zod (input schema validation) |
+| Rate Limiting | express-rate-limit |
 | Upload | Multer (gambar buku & foto profil) |
 | UI | Neo-Brutalism custom design system |
 

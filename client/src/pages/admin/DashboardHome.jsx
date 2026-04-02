@@ -183,9 +183,6 @@ const DashboardHome = () => {
             {/* HERO BANNER */}
             <div className="bg-[#AEEA00] brutal-border-heavy brutal-shadow-lg p-8 md:p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <div className="inline-block bg-black text-white px-3 py-1 font-black text-[10px] uppercase tracking-widest mb-4">
-                        ⚡ Admin Panel
-                    </div>
                     <h1 className="text-3xl md:text-4xl font-black uppercase leading-tight tracking-tighter mb-2">
                         Halo, <span className="bg-black text-white px-2">Administrator</span>
                     </h1>

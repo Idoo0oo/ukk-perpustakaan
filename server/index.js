@@ -9,7 +9,6 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
-const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
 // Import semua routing modul
@@ -25,9 +24,6 @@ const profileRoutes = require('./routes/profileRoutes');
 const publicRoutes = require('./routes/publicRoutes');
 
 const app = express();
-app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-}));
 app.use(cors());
 app.use(express.json());
 
