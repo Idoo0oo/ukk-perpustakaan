@@ -43,7 +43,7 @@ ukk-perpustakaan/
 └── server/                      # Backend Node.js + Express
     ├── config/
     │   └── db.js                # Konfigurasi database MySQL (connection pool)
-    ├── controllers/             # Business logic
+    ├── controllers/             # Business logic (orchestrate models)
     │   ├── authController.js    # Autentikasi (login, register)
     │   ├── bukuController.js    # CRUD buku + multi-kategori + upload gambar
     │   ├── kategoriController.js
@@ -54,6 +54,14 @@ ukk-perpustakaan/
     │   ├── laporanController.js
     │   ├── fiturController.js   # Koleksi pribadi (bookmark)
     │   └── publicController.js  # Data publik landing page
+    ├── models/                  # Data access layer (raw SQL queries)
+    │   ├── bukuModel.js         # Query CRUD buku & multi-kategori
+    │   ├── kategoriModel.js     # Query CRUD kategori
+    │   ├── koleksiModel.js      # Query koleksi pribadi (bookmark)
+    │   ├── laporanModel.js      # Query laporan peminjaman
+    │   ├── peminjamanModel.js   # Query peminjaman & pengembalian
+    │   ├── ulasanModel.js       # Query ulasan buku
+    │   └── userModel.js         # Query user & profil
     ├── middleware/
     │   ├── authMiddleware.js    # JWT verification & role check
     │   ├── uploadMiddleware.js  # Multer config (gambar buku, filter & size limit)
@@ -120,6 +128,8 @@ ukk-perpustakaan/
 
 ### Pattern: MVC (Model-View-Controller)
 
+Server menggunakan arsitektur MVC penuh dengan layer **Model** yang memisahkan query SQL dari business logic di Controller.
+
 ```
 ┌─────────────┐
 │   Client    │  (View)
@@ -154,18 +164,22 @@ ukk-perpustakaan/
 │  └───────────┬──────────────────┘   │
 │              ↓                       │
 │  ┌─────────────────────────────┐   │
-│  │ Controllers Layer            │   │
+│  │ Controllers Layer (C)        │   │
 │  │  (Business Logic)            │   │
 │  └───────────┬──────────────────┘   │
 │              ↓                       │
 │  ┌─────────────────────────────┐   │
-│  │ Database Layer               │   │
-│  │  (Connection Pool)           │   │
+│  │ Models Layer (M)             │   │
+│  │  (Data Access / SQL Queries) │   │
+│  └───────────┬──────────────────┘   │
+│              ↓                       │
+│  ┌─────────────────────────────┐   │
+│  │ Connection Pool (mysql2)     │   │
 │  └───────────┬──────────────────┘   │
 └──────────────┼──────────────────────┘
                ↓
          ┌──────────┐
-         │  MySQL   │  (Model)
+         │  MySQL   │
          │ Database │
          └──────────┘
 ```
@@ -394,11 +408,20 @@ Seluruh antarmuka menggunakan tema **Neo-Brutalism** yang konsisten:
 
 ### Utility Classes (`index.css`)
 ```css
-.brutal-border       /* border: 2px solid black */
-.brutal-border-heavy /* border: 3-4px solid black */
-.brutal-shadow       /* box-shadow: 4px 4px 0 black */
-.brutal-shadow-lg    /* box-shadow: 6px 6px 0 black */
-.brutal-shadow-sm    /* box-shadow: 2px 2px 0 black */
+/* Borders */
+.brutal-border       /* border: 3px solid black */
+.brutal-border-heavy /* border: 4px solid black */
+
+/* Shadows (with interactive hover/active states) */
+.brutal-shadow       /* box-shadow: 4px 4px 0 black; hover: 6px 6px, active: 2px 2px */
+.brutal-shadow-lg    /* box-shadow: 8px 8px 0 black; hover: 12px 12px, active: 4px 4px */
+
+/* Scrollbar */
+.scrollbar-hide      /* Hide scrollbar, scroll tetap berfungsi */
+
+/* Animations */
+.animate-blob        /* Blob background movement (7s infinite) */
+.animation-delay-2000 /* 2s delay untuk blob kedua */
 ```
 
 ### Typography
@@ -410,6 +433,7 @@ Seluruh antarmuka menggunakan tema **Neo-Brutalism** yang konsisten:
 - Framer Motion untuk page transitions & modal animations
 - Hover effects: `hover:translate-x-1 hover:translate-y-1 hover:shadow-none`
 - Navbar hide: `AnimatePresence` dengan `y: 80, opacity: 0` saat modal terbuka
+- Blob background: `animate-blob` + `animation-delay-2000` untuk efek blob berlapis di LandingPage
 
 ## 🔒 Security Implementation
 
