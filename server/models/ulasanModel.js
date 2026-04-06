@@ -15,6 +15,15 @@ class UlasanModel {
         );
     }
 
+    // Cek apakah user sudah pernah mengulas buku ini
+    static async findByUserAndBuku(userID, bukuID) {
+        const [rows] = await db.query(
+            "SELECT UlasanID FROM ulasanbuku WHERE UserID = ? AND BukuID = ? LIMIT 1",
+            [userID, bukuID]
+        );
+        return rows[0] || null;
+    }
+
     // Ambil ulasan per buku (Public/User)
     static async findByBukuId(bukuID) {
         // PERBAIKAN: Tambahkan b.Gambar dan us.NamaLengkap

@@ -153,10 +153,11 @@ const DashboardPeminjam = () => {
         });
 
         if (lamaPinjam) {
-            if (lamaPinjam > 14 || lamaPinjam < 1) return Swal.fire('Error', 'Lama peminjaman harus 1 - 14 hari.', 'error');
+            const lamaPinjamInt = parseInt(lamaPinjam, 10);
+            if (lamaPinjamInt > 14 || lamaPinjamInt < 1) return Swal.fire('Error', 'Lama peminjaman harus 1 - 14 hari.', 'error');
             try {
                 Swal.fire({ title: 'Memproses...', didOpen: () => Swal.showLoading() });
-                await axios.post('http://localhost:5000/api/peminjaman', { bukuID, lamaPinjam }, { headers: { Authorization: `Bearer ${token}` } });
+                await axios.post('http://localhost:5000/api/peminjaman', { bukuID, lamaPinjam: lamaPinjamInt }, { headers: { Authorization: `Bearer ${token}` } });
                 Swal.fire({
                     icon: 'success',
                     title: '<span class="font-black uppercase">BERHASIL!</span>',

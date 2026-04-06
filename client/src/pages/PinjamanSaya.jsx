@@ -80,8 +80,10 @@ const PinjamanSaya = () => {
 
         if (formValues) {
             try {
-                await axios.post('http://localhost:5000/api/fitur/ulasan', {
-                    bukuID, rating: formValues.rating, ulasan: formValues.ulasan
+                await axios.post('http://localhost:5000/api/ulasan', {
+                    bukuID: parseInt(bukuID, 10),
+                    rating: parseInt(formValues.rating, 10),
+                    ulasan: formValues.ulasan
                 }, { headers: { Authorization: `Bearer ${token}` } });
                 Swal.fire({
                     icon: 'success',
@@ -94,7 +96,15 @@ const PinjamanSaya = () => {
                 });
                 fetchLoans();
             } catch (err) {
-                Swal.fire('Gagal!', 'Terjadi kesalahan.', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: '<span class="font-black uppercase">GAGAL</span>',
+                    text: err.response?.data?.message || 'Terjadi kesalahan.',
+                    customClass: {
+                        popup: 'brutal-border-heavy brutal-shadow',
+                        confirmButton: 'bg-black text-white font-black uppercase brutal-border brutal-shadow-sm'
+                    }
+                });
             }
         }
     };
@@ -258,7 +268,7 @@ const PinjamanSaya = () => {
                                     {/* STATUS BADGE - ROTATED */}
                                     <div className={`absolute top-4 -left-2 px-4 py-1 font-black uppercase text-xs brutal-border brutal-shadow-sm z-10 -rotate-12 transition-transform group-hover:rotate-0 ${
                                         loan.StatusPeminjaman === 'Dipinjam' ? 'bg-[#AEEA00]' :
-                                        loan.StatusPeminjaman === 'Kembali' ? 'bg-[#FFD600]' : 'bg-gray-200'
+                                        loan.StatusPeminjaman === 'Dikembalikan' ? 'bg-[#FFD600]' : 'bg-gray-200'
                                     }`}>
                                         {loan.StatusPeminjaman}
                                     </div>
@@ -328,7 +338,7 @@ const PinjamanSaya = () => {
                                                     <LogOut size={18} className="rotate-180" /> Kembalikan Buku
                                                 </button>
                                             )}
-                                            {loan.StatusPeminjaman === 'Kembali' && (
+                                            {loan.StatusPeminjaman === 'Dikembalikan' && (
                                                 <button
                                                     onClick={() => handleUlasan(loan.BukuID, loan.Buku?.Judul)}
                                                     className="bg-[#FF4081] text-white brutal-border-heavy px-8 py-4 font-black uppercase text-sm brutal-shadow-sm hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2 active:bg-white active:text-black"

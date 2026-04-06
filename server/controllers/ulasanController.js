@@ -14,7 +14,12 @@ exports.addUlasan = async (req, res) => {
     if (!rating) return res.status(400).json({ message: "Rating wajib diisi!" });
 
     try {
-        // Validasi bisa ditambahkan di sini atau di Model
+        // Cek apakah user sudah pernah mengulas buku ini
+        const sudahUlasan = await UlasanModel.findByUserAndBuku(userID, bukuID);
+        if (sudahUlasan) {
+            return res.status(409).json({ message: "Kamu sudah pernah mengulas buku ini!" });
+        }
+
         await UlasanModel.create(userID, bukuID, ulasan, rating);
         res.status(201).json({ message: "Ulasan berhasil dikirim!" });
     } catch (error) {
